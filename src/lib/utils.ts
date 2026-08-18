@@ -1,4 +1,4 @@
-﻿import { type ClassValue, clsx } from 'clsx'
+import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -56,8 +56,22 @@ export function getStatusLabel(status: string): string {
   return labels[status] || status
 }
 
+export function formatPhoneForWhatsApp(phone: string): string {
+  if (!phone) return ''
+  let clean = phone.replace(/[^0-9]/g, '')
+  // Si empieza con 0 (ej: 04121702806 -> 11 digitos), convertir a 584121702806
+  if (clean.startsWith('0') && clean.length === 11) {
+    clean = '58' + clean.slice(1)
+  }
+  // Si tiene 10 digitos (ej: 4121702806), agregar 58
+  else if (clean.length === 10 && (clean.startsWith('412') || clean.startsWith('414') || clean.startsWith('424') || clean.startsWith('416') || clean.startsWith('426'))) {
+    clean = '58' + clean
+  }
+  return clean
+}
+
 export function generateWhatsAppLink(phone: string, message: string): string {
-  const cleanPhone = phone.replace(/[^0-9]/g, '')
+  const formattedPhone = formatPhoneForWhatsApp(phone)
   const encodedMessage = encodeURIComponent(message)
-  return `https://wa.me/${cleanPhone}?text=${encodedMessage}`
+  return `https://wa.me/${formattedPhone}?text=${encodedMessage}`
 }

@@ -1,8 +1,9 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Client } from '@/types'
+import { generateWhatsAppLink } from '@/lib/utils'
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<Client[]>([])
@@ -91,7 +92,7 @@ export default function ClientesPage() {
               </div>
               {client.phone && (
                 <a
-                  href={`https://wa.me/${client.phone.replace(/[^0-9]/g, '')}`}
+                  href={generateWhatsAppLink(client.phone, `Hola ${client.name} 🌸`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 text-green-500 hover:bg-green-50 rounded-xl transition-colors text-xl"
@@ -122,12 +123,12 @@ export default function ClientesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Teléfono (con código de país)</label>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Teléfono</label>
                 <input
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="584121234567"
+                  placeholder="04121234567"
                   className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
                 />
               </div>

@@ -1,8 +1,8 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatDate, formatTime, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { formatDate, formatTime, getStatusColor, getStatusLabel, generateWhatsAppLink } from '@/lib/utils'
 
 export default function CitasPage() {
   const [appointments, setAppointments] = useState<any[]>([])
@@ -174,7 +174,10 @@ export default function CitasPage() {
 
               {selectedApt.clients?.phone && (
                 <a
-                  href={`https://wa.me/${selectedApt.clients.phone.replace(/[^0-9]/g, '')}?text=Hola%20${encodeURIComponent(selectedApt.clients.name)}%2C%20te%20recuerdo%20tu%20consulta%20mañana%20${encodeURIComponent(formatTime(selectedApt.scheduled_at))}`}
+                  href={generateWhatsAppLink(
+                    selectedApt.clients.phone,
+                    `Hola ${selectedApt.clients.name} 🌸 Te recuerdo tu consulta para el ${formatDate(selectedApt.scheduled_at)} a las ${formatTime(selectedApt.scheduled_at)}.`
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 w-full justify-center bg-green-50 text-green-600 border border-green-200 py-2.5 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
