@@ -1,19 +1,19 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatTime } from '@/lib/utils'
 
 const PAGO_MOVIL = {
-  banco: 'Banco Mercantil',
-  cedula: 'V-12.345.678',
-  telefono: '0412-0000000',
-  concepto: 'Consulta psicologica',
+  banco: 'Banco Nacional de Crédito (BNC)',
+  cedula: 'V-25.988.653',
+  telefono: '0412-1702806',
+  concepto: 'Consulta psicológica',
 }
 
 const ZELLE = {
   email: 'carmen@ejemplo.com',
-  nombre: 'Carmen Gonzalez',
+  nombre: 'Carmen Jordán',
 }
 
 interface Props {

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -62,8 +62,8 @@ export default function DashboardSidebar() {
         <div className="flex items-center gap-3 px-4 py-3 mb-2">
           <div className="w-8 h-8 rounded-full bg-[#E8E4F0] flex items-center justify-center text-sm">🌸</div>
           <div>
-            <p className="text-sm font-medium text-[#4A4A4A]">Carmen</p>
-            <p className="text-xs text-[#8A8A8A]">Psicóloga</p>
+            <p className="text-sm font-medium text-[#4A4A4A]">Carmen Jordán</p>
+            <p className="text-xs text-[#8A8A8A]">Psicóloga Clínica</p>
           </div>
         </div>
         <button

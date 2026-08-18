@@ -1,12 +1,12 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Carmen Psicóloga — Consultas Online',
-  description: 'Consultas psicológicas online con Carmen. Espacio seguro, cálido y profesional para tu bienestar emocional.',
+  title: 'Carmen Jordán — Psicóloga Clínica | Consultas Online',
+  description: 'Consultas psicológicas online con Carmen Jordán. Espacio seguro, cálido y profesional para tu bienestar emocional.',
   openGraph: {
-    title: 'Carmen Psicóloga',
-    description: 'Consultas psicológicas online',
+    title: 'Carmen Jordán Psicóloga Clínica',
+    description: 'Consultas psicológicas online con Carmen Jordán',
     type: 'website',
   },
 }

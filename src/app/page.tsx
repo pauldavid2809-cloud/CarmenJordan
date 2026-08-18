@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 
 const specialties = [
   { icon: '🧠', title: 'Ansiedad y Estrés', desc: 'Herramientas prácticas para manejar la ansiedad y recuperar tu calma.' },
@@ -49,7 +49,7 @@ export default function LandingPage() {
                 <span className="text-[#B39DDB] italic"> para ti.</span>
               </h1>
               <p className="text-[#8A8A8A] text-lg leading-relaxed mb-8">
-                Hola, soy Carmen. Te acompaño en tu proceso de crecimiento personal y bienestar emocional desde la comodidad de tu hogar.
+                Hola, soy Carmen Jordán. Te acompaño en tu proceso de crecimiento personal y bienestar emocional desde la comodidad de tu hogar.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a
@@ -70,20 +70,16 @@ export default function LandingPage() {
                   <span className="text-green-500">●</span>
                   Consultas disponibles
                 </div>
-                <div>📍 Venezuela · Online</div>
+                <div>📍 Modalidad Online</div>
               </div>
             </div>
             <div className="relative">
               <div className="w-full aspect-square max-w-md mx-auto rounded-3xl bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-8xl mb-4">🌸</div>
-                  <p className="font-playfair text-2xl text-[#B39DDB] font-medium">Carmen</p>
+                  <p className="font-playfair text-2xl text-[#B39DDB] font-medium">Carmen Jordán</p>
                   <p className="text-[#8A8A8A] text-sm mt-1">Psicóloga Clínica</p>
                 </div>
-              </div>
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-lg border border-[#E8E4F0]">
-                <p className="text-2xl font-bold text-[#B39DDB] font-playfair">+200</p>
-                <p className="text-xs text-[#8A8A8A]">Pacientes atendidos</p>
               </div>
               <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-lg border border-[#E8E4F0]">
                 <p className="text-2xl font-bold text-[#B39DDB] font-playfair">5★</p>
@@ -147,7 +143,7 @@ export default function LandingPage() {
             Escríbeme por WhatsApp y juntas encontramos el horario ideal para ti.
           </p>
           <a
-            href="https://wa.me/584120000000?text=Hola%20Carmen%2C%20me%20gustaría%20agendar%20una%20consulta."
+            href="https://wa.me/584121702806?text=Hola%20Carmen%2C%20me%20gustar%C3%ADa%20agendar%20una%20consulta."
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 bg-green-500 text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-green-600 transition-all hover:shadow-lg"
@@ -158,15 +154,24 @@ export default function LandingPage() {
             Escribir por WhatsApp
           </a>
           <p className="text-[#8A8A8A] text-sm mt-6">
-            También puedes escribirme a <span className="text-[#B39DDB]">@carmen.psicologa</span> en Instagram
+            También puedes escribirme a{' '}
+            <a
+              href="https://instagram.com/carmenjordanc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#B39DDB] hover:underline font-medium"
+            >
+              @carmenjordanc
+            </a>{' '}
+            en Instagram
           </p>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="py-8 px-6 text-center border-t border-[#E8E4F0]">
-        <p className="font-playfair text-lg text-[#4A4A4A] mb-1">Carmen<span className="text-[#B39DDB]">.</span></p>
-        <p className="text-[#8A8A8A] text-sm">Psicóloga Clínica · Consultas Online · Venezuela</p>
+        <p className="font-playfair text-lg text-[#4A4A4A] mb-1">Carmen Jordán<span className="text-[#B39DDB]">.</span></p>
+        <p className="text-[#8A8A8A] text-sm">Psicóloga Clínica · Consultas Online</p>
       </footer>
     </div>
   )
