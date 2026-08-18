@@ -48,7 +48,7 @@ export default function CobrosPage() {
     session_type: 'Individual',
     amount_usd: '',
     currency: 'USD',
-    payment_method: 'ambos',
+    payment_method: 'pago_movil',
   })
   const [saving, setSaving] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
@@ -119,7 +119,7 @@ export default function CobrosPage() {
     }
 
     setShowNewModal(false)
-    setForm({ client_id: '', scheduled_at: '', session_type: 'Individual', amount_usd: '', currency: 'USD', payment_method: 'ambos' })
+    setForm({ client_id: '', scheduled_at: '', session_type: 'Individual', amount_usd: '', currency: 'USD', payment_method: 'pago_movil' })
     setSaving(false)
     fetchLinks()
   }
@@ -413,9 +413,7 @@ export default function CobrosPage() {
                   onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
                 >
-                  <option value="ambos">Pago Móvil y Zelle</option>
-                  <option value="pago_movil">Solo Pago Móvil</option>
-                  <option value="zelle">Solo Zelle</option>
+                  <option value="pago_movil">Pago Móvil</option>
                 </select>
               </div>
               <div className="flex gap-3 pt-2">

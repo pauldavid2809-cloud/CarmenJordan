@@ -11,18 +11,12 @@ const PAGO_MOVIL = {
   concepto: 'Consulta psicológica',
 }
 
-const ZELLE = {
-  email: 'carmen@ejemplo.com',
-  nombre: 'Carmen Jordán',
-}
-
 interface Props {
   link: any
   existingProof: any | null
 }
 
 export default function PaymentPortal({ link, existingProof }: Props) {
-  const [tab, setTab] = useState<'pago_movil' | 'zelle'>('pago_movil')
   const [euroRate, setEuroRate] = useState<number | null>(null)
   const [form, setForm] = useState({
     client_name: '',
@@ -42,7 +36,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
   const isRejected = link.status === 'rechazado'
   const hasProof = !!existingProof || link.status === 'subido'
 
-  // Consulta automática de la tasa de cambio
+  // Consulta automática de la cotización
   useEffect(() => {
     async function fetchRate() {
       try {
@@ -54,7 +48,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
           }
         }
       } catch {
-        // En caso de corte de red, mantiene valor alternativo si existe
+        // Mantiene cálculo si existe
       }
     }
     fetchRate()
@@ -86,7 +80,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
       payment_link_id: link.id,
       file_url: publicUrl,
       file_name: file.name,
-      payment_method_used: tab,
+      payment_method_used: 'pago_movil',
       client_name: form.client_name,
       client_phone: form.client_phone,
     })
@@ -122,11 +116,6 @@ export default function PaymentPortal({ link, existingProof }: Props) {
               <p className="text-[#4A4A4A]">📅 Fecha: {apt?.scheduled_at ? formatDate(apt.scheduled_at) : '-'}</p>
               <p className="text-[#4A4A4A]">🕐 Hora: {apt?.scheduled_at ? formatTime(apt.scheduled_at) : '-'}</p>
               <p className="text-[#4A4A4A]">💼 Modalidad: {apt?.session_type || 'Individual'}</p>
-              {apt?.amount_usd && (
-                <p className="text-xl font-bold text-[#4A4A4A] mt-3">
-                  ${apt.amount_usd.toFixed(2)} <span className="text-sm font-normal text-[#8A8A8A]">USD</span>
-                </p>
-              )}
             </div>
           </div>
 
@@ -177,63 +166,36 @@ export default function PaymentPortal({ link, existingProof }: Props) {
               </div>
             )}
 
-            {/* Formulario de pago */}
+            {/* Formulario de Pago Móvil */}
             {!isExpired && !isVerified && !isRejected && !done && !hasProof && (
               <>
-                {/* Tabs */}
-                {(link.payment_method === 'ambos' || link.payment_method === 'pago_movil') && (
-                  <div className="flex rounded-xl bg-[#FAFAF8] p-1 mb-6 border border-[#E8E4F0]">
-                    {(link.payment_method === 'ambos' || link.payment_method === 'pago_movil') && (
-                      <button
-                        onClick={() => setTab('pago_movil')}
-                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          tab === 'pago_movil' ? 'bg-white text-[#4A4A4A] shadow-sm' : 'text-[#8A8A8A]'
-                        }`}
-                      >
-                        Pago Móvil
-                      </button>
-                    )}
-                    {(link.payment_method === 'ambos' || link.payment_method === 'zelle') && (
-                      <button
-                        onClick={() => setTab('zelle')}
-                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          tab === 'zelle' ? 'bg-white text-[#4A4A4A] shadow-sm' : 'text-[#8A8A8A]'
-                        }`}
-                      >
-                        Zelle
-                      </button>
-                    )}
+                {/* Datos de Pago Móvil */}
+                <div className="bg-[#FAFAF8] rounded-2xl p-5 mb-6 text-sm border border-[#E8E4F0]">
+                  <p className="font-semibold text-[#4A4A4A] mb-3 flex items-center gap-2">
+                    <span>📱</span> Datos para Pago Móvil
+                  </p>
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between">
+                      <span className="text-[#8A8A8A]">Banco:</span>
+                      <span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.banco}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#8A8A8A]">Cédula:</span>
+                      <span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.cedula}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#8A8A8A]">Teléfono:</span>
+                      <span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.telefono}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-3 border-t border-[#E8E4F0]">
+                      <span className="text-[#8A8A8A] font-medium">Monto a pagar:</span>
+                      <span className="font-bold text-[#9575CD] text-lg">
+                        {calculatedBs
+                          ? `Bs. ${calculatedBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : 'Calculando...'}
+                      </span>
+                    </div>
                   </div>
-                )}
-
-                {/* Datos de pago */}
-                <div className="bg-[#FAFAF8] rounded-2xl p-4 mb-6 text-sm border border-[#E8E4F0]">
-                  {tab === 'pago_movil' ? (
-                    <div className="space-y-2.5">
-                      <p className="font-medium text-[#4A4A4A] mb-2">📱 Datos para Pago Móvil</p>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Banco:</span><span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.banco}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Cédula:</span><span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.cedula}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Teléfono:</span><span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.telefono}</span></div>
-                      <div className="flex justify-between items-center pt-2 border-t border-[#E8E4F0]">
-                        <span className="text-[#8A8A8A] font-medium">Monto a pagar:</span>
-                        <span className="font-bold text-[#9575CD] text-base">
-                          {calculatedBs
-                            ? `Bs. ${calculatedBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                            : 'Calculando...'}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2.5">
-                      <p className="font-medium text-[#4A4A4A] mb-2">🏦 Datos para Zelle</p>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Titular:</span><span className="font-medium text-[#4A4A4A]">{ZELLE.nombre}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Email / Cuenta:</span><span className="font-medium text-[#4A4A4A]">{ZELLE.email}</span></div>
-                      <div className="flex justify-between items-center pt-2 border-t border-[#E8E4F0]">
-                        <span className="text-[#8A8A8A] font-medium">Monto a pagar:</span>
-                        <span className="font-bold text-[#9575CD] text-base">${apt?.amount_usd?.toFixed(2)} USD</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Formulario */}
@@ -245,7 +207,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       required
                       value={form.client_name}
                       onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
                       placeholder="Nombre y apellido"
                     />
                   </div>
@@ -255,7 +217,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       type="tel"
                       value={form.client_phone}
                       onChange={(e) => setForm({ ...form, client_phone: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
                       placeholder="04121234567"
                     />
                   </div>
@@ -274,7 +236,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       ) : (
                         <div>
                           <p className="text-3xl mb-2">📤</p>
-                          <p className="text-sm text-[#4A4A4A] font-medium">Toca para subir la captura del pago</p>
+                          <p className="text-sm text-[#4A4A4A] font-medium">Toca para subir la captura del Pago Móvil</p>
                           <p className="text-xs text-[#8A8A8A] mt-1">Formato JPG, PNG o PDF</p>
                         </div>
                       )}

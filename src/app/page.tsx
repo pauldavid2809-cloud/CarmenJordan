@@ -9,7 +9,7 @@ const specialties = [
 
 const steps = [
   { number: '01', title: 'Agenda tu cita', desc: 'Elige el horario que mejor se adapte a ti.' },
-  { number: '02', title: 'Realiza tu pago', desc: 'Paga fácilmente por Pago Móvil o Zelle con tu comprobante.' },
+  { number: '02', title: 'Realiza tu pago', desc: 'Paga fácilmente por Pago Móvil con tu comprobante.' },
   { number: '03', title: 'Inicia tu sesión', desc: 'Conéctate por Google Meet desde la comodidad de tu hogar.' },
 ]
 
