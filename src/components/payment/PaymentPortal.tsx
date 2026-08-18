@@ -1,0 +1,295 @@
+﻿'use client'
+
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { formatDate, formatTime } from '@/lib/utils'
+
+const PAGO_MOVIL = {
+  banco: 'Banco Mercantil',
+  cedula: 'V-12.345.678',
+  telefono: '0412-0000000',
+  concepto: 'Consulta psicologica',
+}
+
+const ZELLE = {
+  email: 'carmen@ejemplo.com',
+  nombre: 'Carmen Gonzalez',
+}
+
+interface Props {
+  link: any
+  existingProof: any | null
+}
+
+export default function PaymentPortal({ link, existingProof }: Props) {
+  const [tab, setTab] = useState<'pago_movil' | 'zelle'>('pago_movil')
+  const [form, setForm] = useState({
+    client_name: '',
+    client_phone: '',
+    reference_number: '',
+  })
+  const [file, setFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const supabase = createClient()
+
+  const apt = link.appointments
+  const client = apt?.clients
+
+  const isExpired = new Date(link.expires_at) < new Date()
+  const isVerified = link.status === 'verificado'
+  const isRejected = link.status === 'rechazado'
+  const hasProof = !!existingProof || link.status === 'subido'
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!file) return setError('Selecciona una imagen del comprobante')
+    setUploading(true)
+    setError(null)
+
+    const fileName = `${link.id}/${Date.now()}-${file.name}`
+    const { data: upload, error: uploadError } = await supabase.storage
+      .from('payment-proofs')
+      .upload(fileName, file)
+
+    if (uploadError) {
+      setError('Error al subir el archivo. Intenta de nuevo.')
+      setUploading(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('payment-proofs').getPublicUrl(fileName)
+
+    const { error: insertError } = await supabase.from('payment_proofs').insert({
+      payment_link_id: link.id,
+      file_url: publicUrl,
+      file_name: file.name,
+      payment_method_used: tab,
+      client_name: form.client_name,
+      client_phone: form.client_phone,
+      reference_number: form.reference_number,
+    })
+
+    if (insertError) {
+      setError('Error al guardar el comprobante. Intenta de nuevo.')
+      setUploading(false)
+      return
+    }
+
+    await supabase.from('payment_links').update({ status: 'subido' }).eq('id', link.id)
+    setDone(true)
+    setUploading(false)
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A]">
+            Carmen<span className="text-[#B39DDB]">.</span>
+          </h1>
+          <p className="text-[#8A8A8A] text-sm mt-1">Portal de pago</p>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-[#E8E4F0] shadow-sm overflow-hidden">
+          {/* Detalles de la consulta */}
+          <div className="bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] p-6">
+            <p className="text-xs font-medium text-[#9575CD] uppercase tracking-wider mb-3">Detalle de tu consulta</p>
+            <div className="space-y-2 text-sm">
+              {client?.name && <p className="font-medium text-[#4A4A4A] text-base">Hola, {client.name}</p>}
+              <p className="text-[#4A4A4A]">Fecha: {apt?.scheduled_at ? formatDate(apt.scheduled_at) : '-'}</p>
+              <p className="text-[#4A4A4A]">Hora: {apt?.scheduled_at ? formatTime(apt.scheduled_at) : '-'}</p>
+              <p className="text-[#4A4A4A]">Tipo: {apt?.session_type}</p>
+              {apt?.amount_usd && (
+                <p className="text-xl font-bold text-[#4A4A4A] mt-3">
+                  ${apt.amount_usd.toFixed(2)} <span className="text-sm font-normal text-[#8A8A8A]">USD</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6">
+            {/* Estados especiales */}
+            {isExpired && !isVerified && !hasProof && (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-3">Expirado</p>
+                <p className="font-medium text-[#4A4A4A]">Este link ha expirado</p>
+                <p className="text-sm text-[#8A8A8A] mt-1">Contacta a Carmen para generar uno nuevo</p>
+              </div>
+            )}
+
+            {isVerified && (
+              <div className="text-center py-8">
+                <p className="text-5xl mb-4">Verificado</p>
+                <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Pago verificado</p>
+                <p className="text-sm text-[#8A8A8A] mt-2">Tu pago fue confirmado.</p>
+                {apt?.meet_link && (
+                  <a
+                    href={apt.meet_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-4 bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors"
+                  >
+                    Unirse a la consulta por Meet
+                  </a>
+                )}
+              </div>
+            )}
+
+            {isRejected && (
+              <div className="text-center py-8">
+                <p className="text-5xl mb-4">Rechazado</p>
+                <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante rechazado</p>
+                {existingProof?.rejection_reason && (
+                  <p className="text-sm text-red-500 mt-2">{existingProof.rejection_reason}</p>
+                )}
+                <p className="text-sm text-[#8A8A8A] mt-3">Contacta a Carmen para resolver esto</p>
+              </div>
+            )}
+
+            {(done || (hasProof && !isVerified && !isRejected)) && (
+              <div className="text-center py-8">
+                <p className="text-5xl mb-4">Recibido</p>
+                <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante recibido</p>
+                <p className="text-sm text-[#8A8A8A] mt-2">Carmen verificara tu pago pronto.</p>
+              </div>
+            )}
+
+            {/* Formulario de pago */}
+            {!isExpired && !isVerified && !isRejected && !done && !hasProof && (
+              <>
+                {/* Tabs */}
+                {(link.payment_method === 'ambos' || link.payment_method === 'pago_movil') && (
+                  <div className="flex rounded-xl bg-[#FAFAF8] p-1 mb-6">
+                    {(link.payment_method === 'ambos' || link.payment_method === 'pago_movil') && (
+                      <button
+                        onClick={() => setTab('pago_movil')}
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          tab === 'pago_movil' ? 'bg-white text-[#4A4A4A] shadow-sm' : 'text-[#8A8A8A]'
+                        }`}
+                      >
+                        Pago Movil
+                      </button>
+                    )}
+                    {(link.payment_method === 'ambos' || link.payment_method === 'zelle') && (
+                      <button
+                        onClick={() => setTab('zelle')}
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          tab === 'zelle' ? 'bg-white text-[#4A4A4A] shadow-sm' : 'text-[#8A8A8A]'
+                        }`}
+                      >
+                        Zelle
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Datos de pago */}
+                <div className="bg-[#FAFAF8] rounded-2xl p-4 mb-6 text-sm">
+                  {tab === 'pago_movil' ? (
+                    <div className="space-y-2">
+                      <p className="font-medium text-[#4A4A4A] mb-3">Datos para Pago Movil</p>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Banco:</span><span className="font-medium">{PAGO_MOVIL.banco}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Cedula:</span><span className="font-medium">{PAGO_MOVIL.cedula}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Telefono:</span><span className="font-medium">{PAGO_MOVIL.telefono}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Monto:</span><span className="font-bold text-[#B39DDB]">Bs. [tasa del dia]</span></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="font-medium text-[#4A4A4A] mb-3">Datos para Zelle</p>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Nombre:</span><span className="font-medium">{ZELLE.nombre}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Email:</span><span className="font-medium">{ZELLE.email}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Monto:</span><span className="font-bold text-[#B39DDB]">${apt?.amount_usd?.toFixed(2)} USD</span></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Formulario */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu nombre *</label>
+                    <input
+                      type="text"
+                      required
+                      value={form.client_name}
+                      onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu telefono</label>
+                    <input
+                      type="tel"
+                      value={form.client_phone}
+                      onChange={(e) => setForm({ ...form, client_phone: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                      placeholder="0412-0000000"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Numero de referencia</label>
+                    <input
+                      type="text"
+                      value={form.reference_number}
+                      onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                      placeholder="Ej: 123456789"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Captura del comprobante *</label>
+                    <div
+                      className="border-2 border-dashed border-[#E8E4F0] rounded-xl p-6 text-center cursor-pointer hover:border-[#B39DDB] transition-colors"
+                      onClick={() => document.getElementById('fileInput')?.click()}
+                    >
+                      {file ? (
+                        <div>
+                          <p className="text-2xl mb-1">Archivo seleccionado</p>
+                          <p className="text-sm font-medium text-[#4A4A4A]">{file.name}</p>
+                          <p className="text-xs text-[#8A8A8A]">{(file.size / 1024).toFixed(0)} KB</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-3xl mb-2">Subir</p>
+                          <p className="text-sm text-[#8A8A8A]">Toca para subir la captura</p>
+                          <p className="text-xs text-[#8A8A8A] mt-1">JPG, PNG o PDF</p>
+                        </div>
+                      )}
+                      <input
+                        id="fileInput"
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                      />
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={uploading}
+                    className="w-full bg-[#B39DDB] text-white py-3.5 rounded-xl font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 text-sm"
+                  >
+                    {uploading ? 'Enviando comprobante...' : 'Enviar comprobante'}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-[#8A8A8A] mt-6">
+          Carmen - Psicologa Clinica Online
+        </p>
+      </div>
+    </div>
+  )
+}
