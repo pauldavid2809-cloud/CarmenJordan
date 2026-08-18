@@ -35,7 +35,7 @@ export default function LoginPage() {
           <img
             src="/carmen.jpg"
             alt="Carmen Jordán"
-            className="w-20 h-20 rounded-full object-cover object-top border-4 border-white shadow-lg mx-auto mb-3"
+            className="w-20 h-20 rounded-full object-cover object-[50%_15%] border-4 border-white shadow-lg mx-auto mb-3"
           />
           <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A] mb-1">
             Carmen Jordán<span className="text-[#B39DDB]">.</span>

@@ -73,7 +73,7 @@ export default function DashboardSidebar() {
           <img
             src="/carmen.jpg"
             alt="Carmen Jordán"
-            className="w-10 h-10 rounded-full object-cover object-top border-2 border-[#B39DDB]/40 shadow-sm"
+            className="w-10 h-10 rounded-full object-cover object-[50%_15%] border-2 border-[#B39DDB]/40 shadow-sm"
           />
           <div className="min-w-0">
             <p className="text-sm font-medium text-[#4A4A4A] truncate">Carmen Jordán</p>
@@ -110,7 +110,7 @@ export default function DashboardSidebar() {
           <img
             src="/carmen.jpg"
             alt="Carmen"
-            className="w-8 h-8 rounded-full object-cover object-top border border-[#B39DDB]/40"
+            className="w-8 h-8 rounded-full object-cover object-[50%_15%] border border-[#B39DDB]/40"
           />
         </div>
       </header>

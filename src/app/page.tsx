@@ -78,7 +78,7 @@ export default function LandingPage() {
                 <img
                   src="/carmen.jpg"
                   alt="Carmen Jordán — Psicóloga Clínica"
-                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover object-[50%_12%] hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-6">
                   <div>
