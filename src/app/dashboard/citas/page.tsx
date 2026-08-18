@@ -25,16 +25,33 @@ export default function CitasPage() {
     setLoading(false)
   }
 
-  async function updateMeetLink(id: string) {
+  async function updateMeetLink(id: string, sendToWhatsApp: boolean = false) {
+    if (!meetLink.trim() && sendToWhatsApp) {
+      alert('Por favor ingresa un enlace de Google Meet primero.')
+      return
+    }
+
     setSaving(true)
-    await supabase.from('appointments').update({ meet_link: meetLink }).eq('id', id)
+    await supabase.from('appointments').update({ meet_link: meetLink.trim() }).eq('id', id)
     setSaving(false)
     fetchAppointments()
+
+    if (sendToWhatsApp && selectedApt?.clients?.phone) {
+      const msg = `Hola ${selectedApt.clients.name} 🌸 Aquí tienes el enlace de Google Meet para nuestra consulta del ${formatDate(selectedApt.scheduled_at)} a las ${formatTime(selectedApt.scheduled_at)}:\n\n${meetLink.trim()}`
+      window.open(generateWhatsAppLink(selectedApt.clients.phone, msg), '_blank')
+    }
   }
 
   async function updateStatus(id: string, status: string) {
     await supabase.from('appointments').update({ status }).eq('id', id)
     fetchAppointments()
+  }
+
+  function sendMeetWhatsApp(apt: any) {
+    if (!apt.clients?.phone) return alert('El paciente no tiene teléfono registrado.')
+    if (!apt.meet_link) return alert('Primero ingresa y guarda el enlace de Meet.')
+    const msg = `Hola ${apt.clients.name} 🌸 Aquí tienes el enlace de Google Meet para nuestra consulta del ${formatDate(apt.scheduled_at)} a las ${formatTime(apt.scheduled_at)}:\n\n${apt.meet_link}`
+    window.open(generateWhatsAppLink(apt.clients.phone, msg), '_blank')
   }
 
   const grouped: Record<string, any[]> = {}
@@ -84,15 +101,24 @@ export default function CitasPage() {
                       </div>
                       <div className="flex items-center gap-2 self-end sm:self-auto">
                         {apt.meet_link && (
-                          <a
-                            href={apt.meet_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-xl text-xs font-medium hover:bg-blue-100 transition-colors flex items-center gap-1"
-                          >
-                            <span>📹</span> Meet
-                          </a>
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); sendMeetWhatsApp(apt) }}
+                              className="bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-xl text-xs font-medium hover:bg-green-100 transition-colors flex items-center gap-1"
+                              title="Enviar enlace de Meet por WhatsApp"
+                            >
+                              <span>💬</span> Enviar Meet
+                            </button>
+                            <a
+                              href={apt.meet_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded-xl text-xs font-medium hover:bg-blue-100 transition-colors flex items-center gap-1"
+                            >
+                              <span>📹</span> Sala
+                            </a>
+                          </>
                         )}
                         <span className={`text-xs px-2.5 py-1 rounded-full border whitespace-nowrap ${getStatusColor(apt.status)}`}>
                           {getStatusLabel(apt.status)}
@@ -112,7 +138,7 @@ export default function CitasPage() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-playfair text-2xl font-medium text-[#4A4A4A]">Detalles de la cita</h2>
+              <h2 className="font-playfair text-2xl font-medium text-[#4A4A4A]">Detalles de la consulta</h2>
               <button
                 onClick={() => setSelectedApt(null)}
                 className="text-[#8A8A8A] hover:text-[#4A4A4A] text-lg p-1"
@@ -126,35 +152,46 @@ export default function CitasPage() {
                 <p className="font-medium text-[#4A4A4A] text-base">{selectedApt.clients?.name}</p>
                 <p className="text-[#8A8A8A]">📅 {formatDate(selectedApt.scheduled_at)} a las {formatTime(selectedApt.scheduled_at)}</p>
                 <p className="text-[#8A8A8A]">💼 Modalidad: {selectedApt.session_type}</p>
-                {selectedApt.clients?.phone && <p className="text-[#8A8A8A]">📱 {selectedApt.clients.phone}</p>}
+                {selectedApt.clients?.phone && <p className="text-[#8A8A8A]">📱 Teléfono: {selectedApt.clients.phone}</p>}
               </div>
 
+              {/* Enlace de Google Meet */}
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Enlace de Google Meet</label>
+                <input
+                  type="url"
+                  value={meetLink}
+                  onChange={(e) => setMeetLink(e.target.value)}
+                  placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white mb-2"
+                />
+
                 <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={meetLink}
-                    onChange={(e) => setMeetLink(e.target.value)}
-                    placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
-                  />
                   <button
-                    onClick={() => updateMeetLink(selectedApt.id)}
+                    onClick={() => updateMeetLink(selectedApt.id, true)}
                     disabled={saving}
-                    className="bg-[#B39DDB] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 shadow-sm whitespace-nowrap"
+                    className="flex-1 bg-green-500 text-white px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium hover:bg-green-600 transition-colors disabled:opacity-60 shadow-sm flex items-center justify-center gap-1.5"
                   >
-                    {saving ? '...' : 'Guardar'}
+                    <span>💬</span> {saving ? 'Guardando...' : 'Guardar y enviar WhatsApp'}
+                  </button>
+                  <button
+                    onClick={() => updateMeetLink(selectedApt.id, false)}
+                    disabled={saving}
+                    className="px-3.5 py-2.5 rounded-xl border border-[#E8E4F0] text-xs sm:text-sm text-[#4A4A4A] hover:bg-[#FAFAF8] transition-colors"
+                  >
+                    💾 Guardar
                   </button>
                 </div>
+
                 {meetLink && (
                   <a href={meetLink} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-blue-500 hover:underline mt-1.5 block font-medium">Abrir sala de Meet ↗</a>
+                    className="text-xs text-blue-500 hover:underline mt-2 block font-medium">Probar sala de Meet ↗</a>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Cambiar estado</label>
+              {/* Cambiar estado */}
+              <div className="pt-2 border-t border-[#E8E4F0]">
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Estado de la cita</label>
                 <div className="flex gap-2 flex-wrap">
                   {['pendiente', 'pagada', 'completada', 'cancelada'].map((s) => (
                     <button
@@ -162,7 +199,7 @@ export default function CitasPage() {
                       onClick={() => { updateStatus(selectedApt.id, s); setSelectedApt({ ...selectedApt, status: s }) }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
                         selectedApt.status === s
-                          ? 'bg-[#B39DDB] text-white shadow-sm'
+                          ? 'bg-[#B39DDB] text-white shadow-sm font-semibold'
                           : 'bg-[#FAFAF8] border border-[#E8E4F0] text-[#8A8A8A] hover:border-[#B39DDB]'
                       }`}
                     >
@@ -172,18 +209,21 @@ export default function CitasPage() {
                 </div>
               </div>
 
+              {/* Recordatorio general */}
               {selectedApt.clients?.phone && (
-                <a
-                  href={generateWhatsAppLink(
-                    selectedApt.clients.phone,
-                    `Hola ${selectedApt.clients.name} 🌸 Te recuerdo tu consulta para el ${formatDate(selectedApt.scheduled_at)} a las ${formatTime(selectedApt.scheduled_at)}.`
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 w-full justify-center bg-green-50 text-green-700 border border-green-200 py-2.5 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors shadow-sm mt-2"
-                >
-                  💬 Enviar recordatorio por WhatsApp
-                </a>
+                <div className="pt-2">
+                  <a
+                    href={generateWhatsAppLink(
+                      selectedApt.clients.phone,
+                      `Hola ${selectedApt.clients.name} 🌸 Te recuerdo tu consulta psicológica agendada para el ${formatDate(selectedApt.scheduled_at)} a las ${formatTime(selectedApt.scheduled_at)}.`
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 w-full justify-center bg-[#FAFAF8] text-[#8A8A8A] hover:text-[#4A4A4A] border border-[#E8E4F0] py-2.5 rounded-xl text-xs sm:text-sm font-medium hover:bg-white transition-colors"
+                  >
+                    ⏰ Enviar recordatorio general
+                  </a>
+                </div>
               )}
             </div>
           </div>
