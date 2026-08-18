@@ -6,8 +6,10 @@ import { formatDate, formatTime } from '@/lib/utils'
 
 const PAGO_MOVIL = {
   banco: 'Banco Nacional de Crédito (BNC)',
-  cedula: 'V-25.988.653',
+  cedula: '25.988.653',
+  cedulaRaw: '25988653',
   telefono: '0412-1702806',
+  telefonoRaw: '04121702806',
   concepto: 'Consulta psicológica',
 }
 
@@ -18,6 +20,7 @@ interface Props {
 
 export default function PaymentPortal({ link, existingProof }: Props) {
   const [euroRate, setEuroRate] = useState<number | null>(null)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
   const [form, setForm] = useState({
     client_name: '',
     client_phone: '',
@@ -56,6 +59,22 @@ export default function PaymentPortal({ link, existingProof }: Props) {
 
   const rawAmount = apt?.amount_usd || apt?.amount_bs || 0
   const calculatedBs = euroRate ? rawAmount * euroRate : apt?.amount_bs || null
+  const formattedBs = calculatedBs
+    ? calculatedBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : ''
+
+  function copyToClipboard(text: string, fieldName: string) {
+    navigator.clipboard.writeText(text)
+    setCopiedField(fieldName)
+    setTimeout(() => {
+      setCopiedField((current) => (current === fieldName ? null : current))
+    }, 2000)
+  }
+
+  function copyAllDetails() {
+    const textToCopy = `Banco: ${PAGO_MOVIL.banco}\nCédula: ${PAGO_MOVIL.cedulaRaw}\nTeléfono: ${PAGO_MOVIL.telefonoRaw}\nMonto: Bs. ${formattedBs || 'A consultar'}`
+    copyToClipboard(textToCopy, 'all')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -169,31 +188,87 @@ export default function PaymentPortal({ link, existingProof }: Props) {
             {/* Formulario de Pago Móvil */}
             {!isExpired && !isVerified && !isRejected && !done && !hasProof && (
               <>
-                {/* Datos de Pago Móvil */}
-                <div className="bg-[#FAFAF8] rounded-2xl p-5 mb-6 text-sm border border-[#E8E4F0]">
-                  <p className="font-semibold text-[#4A4A4A] mb-3 flex items-center gap-2">
-                    <span>📱</span> Datos para Pago Móvil
-                  </p>
+                {/* Datos de Pago Móvil con función copiar */}
+                <div className="bg-[#FAFAF8] rounded-2xl p-4 sm:p-5 mb-6 text-sm border border-[#E8E4F0]">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-semibold text-[#4A4A4A] flex items-center gap-2">
+                      <span>📱</span> Datos para Pago Móvil
+                    </p>
+                    <button
+                      onClick={copyAllDetails}
+                      className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-all ${
+                        copiedField === 'all'
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'bg-white text-[#9575CD] border-[#B39DDB] hover:bg-[#E8E4F0]'
+                      }`}
+                    >
+                      {copiedField === 'all' ? '✓ ¡Todo copiado!' : '📋 Copiar todo'}
+                    </button>
+                  </div>
+
                   <div className="space-y-2.5">
-                    <div className="flex justify-between">
-                      <span className="text-[#8A8A8A]">Banco:</span>
-                      <span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.banco}</span>
+                    {/* Banco */}
+                    <div className="flex items-center justify-between p-2 rounded-xl hover:bg-white/80 transition-colors">
+                      <span className="text-[#8A8A8A] text-xs sm:text-sm">Banco:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[#4A4A4A] text-xs sm:text-sm">{PAGO_MOVIL.banco}</span>
+                        <button
+                          onClick={() => copyToClipboard('Banco Nacional de Credito', 'banco')}
+                          className="text-[11px] text-[#B39DDB] hover:text-[#9575CD] px-1.5 py-0.5 rounded bg-white border border-[#E8E4F0]"
+                          title="Copiar banco"
+                        >
+                          {copiedField === 'banco' ? '✓' : 'Copiar'}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#8A8A8A]">Cédula:</span>
-                      <span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.cedula}</span>
+
+                    {/* Cédula */}
+                    <div className="flex items-center justify-between p-2 rounded-xl hover:bg-white/80 transition-colors">
+                      <span className="text-[#8A8A8A] text-xs sm:text-sm">Cédula:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[#4A4A4A] text-xs sm:text-sm">{PAGO_MOVIL.cedula}</span>
+                        <button
+                          onClick={() => copyToClipboard(PAGO_MOVIL.cedulaRaw, 'cedula')}
+                          className="text-[11px] text-[#B39DDB] hover:text-[#9575CD] px-1.5 py-0.5 rounded bg-white border border-[#E8E4F0]"
+                          title="Copiar cédula"
+                        >
+                          {copiedField === 'cedula' ? '✓' : 'Copiar'}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#8A8A8A]">Teléfono:</span>
-                      <span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.telefono}</span>
+
+                    {/* Teléfono */}
+                    <div className="flex items-center justify-between p-2 rounded-xl hover:bg-white/80 transition-colors">
+                      <span className="text-[#8A8A8A] text-xs sm:text-sm">Teléfono:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[#4A4A4A] text-xs sm:text-sm">{PAGO_MOVIL.telefono}</span>
+                        <button
+                          onClick={() => copyToClipboard(PAGO_MOVIL.telefonoRaw, 'telefono')}
+                          className="text-[11px] text-[#B39DDB] hover:text-[#9575CD] px-1.5 py-0.5 rounded bg-white border border-[#E8E4F0]"
+                          title="Copiar teléfono"
+                        >
+                          {copiedField === 'telefono' ? '✓' : 'Copiar'}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center pt-3 border-t border-[#E8E4F0]">
-                      <span className="text-[#8A8A8A] font-medium">Monto a pagar:</span>
-                      <span className="font-bold text-[#9575CD] text-lg">
-                        {calculatedBs
-                          ? `Bs. ${calculatedBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                          : 'Calculando...'}
-                      </span>
+
+                    {/* Monto */}
+                    <div className="flex items-center justify-between pt-3 border-t border-[#E8E4F0] p-2">
+                      <span className="text-[#8A8A8A] font-medium text-xs sm:text-sm">Monto a pagar:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[#9575CD] text-base sm:text-lg">
+                          {calculatedBs ? `Bs. ${formattedBs}` : 'Calculando...'}
+                        </span>
+                        {calculatedBs && (
+                          <button
+                            onClick={() => copyToClipboard(calculatedBs.toFixed(2), 'monto')}
+                            className="text-[11px] text-[#B39DDB] hover:text-[#9575CD] px-1.5 py-0.5 rounded bg-white border border-[#E8E4F0]"
+                            title="Copiar monto"
+                          >
+                            {copiedField === 'monto' ? '✓' : 'Copiar'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
