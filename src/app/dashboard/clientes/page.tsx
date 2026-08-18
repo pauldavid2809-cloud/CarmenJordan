@@ -44,15 +44,15 @@ export default function ClientesPage() {
   )
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A]">Clientes</h1>
-          <p className="text-[#8A8A8A] mt-1">{clients.length} pacientes registrados</p>
+          <h1 className="font-playfair text-2xl sm:text-3xl font-semibold text-[#4A4A4A]">Clientes</h1>
+          <p className="text-sm text-[#8A8A8A] mt-1">{clients.length} pacientes registrados</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#B39DDB] text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-[#9575CD] transition-colors"
+          className="bg-[#B39DDB] text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-[#9575CD] transition-colors shadow-sm self-start sm:self-auto"
         >
           + Nuevo cliente
         </button>
@@ -64,29 +64,29 @@ export default function ClientesPage() {
           placeholder="Buscar por nombre, teléfono o email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md px-4 py-3 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+          className="w-full max-w-md px-4 py-3 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white shadow-sm"
         />
       </div>
 
       {loading ? (
         <div className="text-center py-20 text-[#8A8A8A]">Cargando...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
+        <div className="text-center py-20 bg-white rounded-3xl border border-[#E8E4F0] p-8">
           <p className="text-4xl mb-3">👥</p>
-          <p className="text-[#8A8A8A]">No hay clientes. ¡Agrega el primero!</p>
+          <p className="text-[#8A8A8A]">No hay clientes registrados aún.</p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filtered.map((client) => (
-            <div key={client.id} className="bg-white rounded-2xl p-5 border border-[#E8E4F0] flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#E8E4F0] flex items-center justify-center text-xl font-playfair font-bold text-[#B39DDB]">
-                {client.name[0].toUpperCase()}
+            <div key={client.id} className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E4F0] flex items-center gap-3 sm:gap-4 shadow-sm hover:border-[#B39DDB] transition-all">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#E8E4F0] flex items-center justify-center text-lg sm:text-xl font-playfair font-bold text-[#B39DDB] flex-shrink-0">
+                {client.name[0]?.toUpperCase() || 'P'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-[#4A4A4A]">{client.name}</p>
-                <div className="flex gap-4 mt-1 text-sm text-[#8A8A8A]">
+                <p className="font-medium text-[#4A4A4A] text-sm sm:text-base truncate">{client.name}</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs sm:text-sm text-[#8A8A8A]">
                   {client.phone && <span>📱 {client.phone}</span>}
-                  {client.email && <span>✉️ {client.email}</span>}
+                  {client.email && <span className="truncate">✉️ {client.email}</span>}
                 </div>
                 {client.notes && <p className="text-xs text-[#8A8A8A] mt-1 truncate">{client.notes}</p>}
               </div>
@@ -95,7 +95,7 @@ export default function ClientesPage() {
                   href={generateWhatsAppLink(client.phone, `Hola ${client.name} 🌸`)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 text-green-500 hover:bg-green-50 rounded-xl transition-colors text-xl"
+                  className="p-2.5 text-green-600 bg-green-50 hover:bg-green-100 rounded-xl transition-colors text-lg flex-shrink-0"
                   title="Escribir por WhatsApp"
                 >
                   💬
@@ -109,17 +109,26 @@ export default function ClientesPage() {
       {/* Modal nuevo cliente */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-xl">
-            <h2 className="font-playfair text-2xl font-medium text-[#4A4A4A] mb-6">Nuevo cliente</h2>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-playfair text-2xl font-medium text-[#4A4A4A]">Nuevo cliente</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-[#8A8A8A] hover:text-[#4A4A4A] text-lg p-1"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={saveClient} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Nombre *</label>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Nombre completo *</label>
                 <input
                   type="text"
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                  placeholder="Ej: María Pérez"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
                 />
               </div>
               <div>
@@ -129,7 +138,7 @@ export default function ClientesPage() {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   placeholder="04121234567"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
                 />
               </div>
               <div>
@@ -138,7 +147,8 @@ export default function ClientesPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                  placeholder="cliente@ejemplo.com"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
                 />
               </div>
               <div>
@@ -147,7 +157,8 @@ export default function ClientesPage() {
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm resize-none"
+                  placeholder="Motivo de consulta, observaciones..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm resize-none bg-white"
                 />
               </div>
               <div className="flex gap-3 pt-2">
@@ -161,7 +172,7 @@ export default function ClientesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl bg-[#B39DDB] text-white text-sm font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60"
+                  className="flex-1 py-2.5 rounded-xl bg-[#B39DDB] text-white text-sm font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 shadow-sm"
                 >
                   {saving ? 'Guardando...' : 'Guardar'}
                 </button>

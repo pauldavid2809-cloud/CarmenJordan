@@ -73,17 +73,26 @@ export default function LandingPage() {
                 <div>📍 Modalidad Online</div>
               </div>
             </div>
-            <div className="relative">
-              <div className="w-full aspect-square max-w-md mx-auto rounded-3xl bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-8xl mb-4">🌸</div>
-                  <p className="font-playfair text-2xl text-[#B39DDB] font-medium">Carmen Jordán</p>
-                  <p className="text-[#8A8A8A] text-sm mt-1">Psicóloga Clínica</p>
+            <div className="relative max-w-md mx-auto w-full">
+              <div className="w-full aspect-[4/5] sm:aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] relative">
+                <img
+                  src="/carmen.jpg"
+                  alt="Carmen Jordán — Psicóloga Clínica"
+                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-6">
+                  <div>
+                    <p className="text-white font-playfair text-2xl font-bold">Carmen Jordán</p>
+                    <p className="text-white/90 text-sm font-medium">Psicóloga Clínica</p>
+                  </div>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-lg border border-[#E8E4F0]">
-                <p className="text-2xl font-bold text-[#B39DDB] font-playfair">5★</p>
-                <p className="text-xs text-[#8A8A8A]">Valoración promedio</p>
+              <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-white rounded-2xl px-4 py-2.5 shadow-xl border border-[#E8E4F0] flex items-center gap-2">
+                <span className="text-lg">⭐️</span>
+                <div>
+                  <p className="text-xs font-bold text-[#4A4A4A]">5.0 · Online</p>
+                  <p className="text-[10px] text-[#8A8A8A]">Atención Personalizada</p>
+                </div>
               </div>
             </div>
           </div>

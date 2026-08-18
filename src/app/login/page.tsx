@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -31,11 +31,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="font-playfair text-4xl font-semibold text-[#4A4A4A] mb-2">
-            Carmen<span className="text-[#B39DDB]">.</span>
+        <div className="text-center mb-6">
+          <img
+            src="/carmen.jpg"
+            alt="Carmen Jordán"
+            className="w-20 h-20 rounded-full object-cover object-top border-4 border-white shadow-lg mx-auto mb-3"
+          />
+          <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A] mb-1">
+            Carmen Jordán<span className="text-[#B39DDB]">.</span>
           </h1>
-          <p className="text-[#8A8A8A]">Panel de administración</p>
+          <p className="text-xs text-[#8A8A8A]">Panel de administración</p>
         </div>
 
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-[#E8E4F0]">

@@ -23,7 +23,7 @@ export default async function ReportesPage() {
 
   const { data: allApts } = await supabase
     .from('appointments')
-    .select('amount_usd, currency, status, session_type')
+    .select('amount_usd, amount_bs, currency, status, session_type')
 
   const totalUSD = allApts?.filter(a => a.status === 'pagada' && a.currency === 'USD').reduce((s, a) => s + (a.amount_usd || 0), 0) || 0
   const thisMonthUSD = thisMonthApts?.filter(a => a.status === 'pagada' && a.currency === 'USD').reduce((s, a) => s + (a.amount_usd || 0), 0) || 0
@@ -36,7 +36,6 @@ export default async function ReportesPage() {
 
   const totalSessions = allApts?.length || 0
   const completedSessions = allApts?.filter(a => a.status === 'completada' || a.status === 'pagada').length || 0
-  const pendingSessions = allApts?.filter(a => a.status === 'pendiente').length || 0
 
   const stats = [
     { label: 'Ingresos totales', value: `$${totalUSD.toFixed(2)}`, sub: 'en USD', icon: '💵', color: 'text-green-600 bg-green-50' },
@@ -46,68 +45,54 @@ export default async function ReportesPage() {
   ]
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A]">Reportes</h1>
-        <p className="text-[#8A8A8A] mt-1">Resumen de tu actividad y ganancias</p>
+    <div className="max-w-6xl mx-auto">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-playfair text-2xl sm:text-3xl font-semibold text-[#4A4A4A]">Reportes</h1>
+        <p className="text-sm text-[#8A8A8A] mt-1">Resumen de actividad y rendimiento financiero</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl p-5 border border-[#E8E4F0]">
-            <div className={`w-10 h-10 rounded-xl ${s.color} flex items-center justify-center text-xl mb-3`}>{s.icon}</div>
-            <p className="text-2xl font-bold text-[#4A4A4A]">{s.value}</p>
-            <p className="text-xs text-[#8A8A8A] mt-1">{s.label}</p>
-            <p className="text-xs text-[#B39DDB] mt-0.5">{s.sub}</p>
+          <div key={s.label} className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8E4F0] shadow-sm">
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${s.color} flex items-center justify-center text-lg sm:text-xl mb-2 sm:mb-3`}>{s.icon}</div>
+            <p className="text-xl sm:text-2xl font-bold text-[#4A4A4A]">{s.value}</p>
+            <p className="text-xs text-[#8A8A8A] mt-0.5 sm:mt-1">{s.label}</p>
+            <p className="text-[11px] text-[#B39DDB] mt-0.5 font-medium">{s.sub}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-[#E8E4F0] p-6">
-          <h2 className="font-medium text-[#4A4A4A] mb-4">Sesiones por tipo</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-[#E8E4F0] p-5 sm:p-6 shadow-sm">
+          <h2 className="font-medium text-[#4A4A4A] mb-4 text-base">Sesiones por tipo</h2>
           <div className="space-y-3">
             {Object.entries(sessionTypes).map(([type, count]) => (
-              <div key={type} className="flex items-center gap-3">
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-[#4A4A4A] font-medium">{type}</span>
-                    <span className="text-[#8A8A8A]">{count} sesiones</span>
-                  </div>
-                  <div className="h-2 bg-[#E8E4F0] rounded-full">
-                    <div
-                      className="h-2 bg-[#B39DDB] rounded-full transition-all"
-                      style={{ width: `${(count / totalSessions) * 100}%` }}
-                    />
-                  </div>
-                </div>
+              <div key={type} className="flex items-center justify-between p-3 rounded-xl bg-[#FAFAF8] border border-[#E8E4F0]/60">
+                <span className="text-sm text-[#4A4A4A]">{type}</span>
+                <span className="text-sm font-bold text-[#B39DDB] bg-[#E8E4F0] px-3 py-1 rounded-full">{count}</span>
               </div>
             ))}
             {Object.keys(sessionTypes).length === 0 && (
-              <p className="text-[#8A8A8A] text-sm text-center py-4">No hay datos aún</p>
+              <p className="text-sm text-[#8A8A8A] text-center py-6">No hay datos suficientes aún.</p>
             )}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#E8E4F0] p-6">
-          <h2 className="font-medium text-[#4A4A4A] mb-4">Estado de sesiones</h2>
+        <div className="bg-white rounded-2xl border border-[#E8E4F0] p-5 sm:p-6 shadow-sm">
+          <h2 className="font-medium text-[#4A4A4A] mb-4 text-base">Estado de sesiones</h2>
           <div className="space-y-3">
             {[
-              { label: 'Completadas / Pagadas', count: completedSessions, color: 'bg-green-400' },
-              { label: 'Pendientes de pago', count: pendingSessions, color: 'bg-amber-400' },
-              { label: 'Canceladas', count: allApts?.filter(a => a.status === 'cancelada').length || 0, color: 'bg-red-300' },
+              { label: 'Pagadas / Confirmadas', count: allApts?.filter(a => a.status === 'pagada').length || 0, color: 'bg-green-500' },
+              { label: 'Completadas', count: allApts?.filter(a => a.status === 'completada').length || 0, color: 'bg-purple-500' },
+              { label: 'Pendientes', count: allApts?.filter(a => a.status === 'pendiente').length || 0, color: 'bg-amber-500' },
+              { label: 'Canceladas', count: allApts?.filter(a => a.status === 'cancelada').length || 0, color: 'bg-red-400' },
             ].map((item) => (
-              <div key={item.label}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-[#4A4A4A] font-medium">{item.label}</span>
-                  <span className="text-[#8A8A8A]">{item.count}</span>
+              <div key={item.label} className="flex items-center justify-between p-3 rounded-xl bg-[#FAFAF8] border border-[#E8E4F0]/60">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
+                  <span className="text-sm text-[#4A4A4A]">{item.label}</span>
                 </div>
-                <div className="h-2 bg-[#E8E4F0] rounded-full">
-                  <div
-                    className={`h-2 ${item.color} rounded-full transition-all`}
-                    style={{ width: totalSessions ? `${(item.count / totalSessions) * 100}%` : '0%' }}
-                  />
-                </div>
+                <span className="text-sm font-semibold text-[#4A4A4A]">{item.count}</span>
               </div>
             ))}
           </div>
