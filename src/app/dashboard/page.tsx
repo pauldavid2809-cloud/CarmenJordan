@@ -1,6 +1,8 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { formatDate, formatTime, getStatusColor, getStatusLabel } from '@/lib/utils'
+
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   const supabase = await createClient()

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import PaymentPortal from '@/components/payment/PaymentPortal'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function PayPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   const supabase = await createClient()
