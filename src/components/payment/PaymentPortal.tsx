@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatTime } from '@/lib/utils'
 
@@ -23,10 +23,10 @@ interface Props {
 
 export default function PaymentPortal({ link, existingProof }: Props) {
   const [tab, setTab] = useState<'pago_movil' | 'zelle'>('pago_movil')
+  const [euroRate, setEuroRate] = useState<number | null>(null)
   const [form, setForm] = useState({
     client_name: '',
     client_phone: '',
-    reference_number: '',
   })
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -42,6 +42,27 @@ export default function PaymentPortal({ link, existingProof }: Props) {
   const isRejected = link.status === 'rechazado'
   const hasProof = !!existingProof || link.status === 'subido'
 
+  // Consulta automática de la tasa de cambio
+  useEffect(() => {
+    async function fetchRate() {
+      try {
+        const res = await fetch('https://ve.dolarapi.com/v1/euros/oficial')
+        if (res.ok) {
+          const data = await res.json()
+          if (data && typeof data.promedio === 'number') {
+            setEuroRate(data.promedio)
+          }
+        }
+      } catch {
+        // En caso de corte de red, mantiene valor alternativo si existe
+      }
+    }
+    fetchRate()
+  }, [])
+
+  const rawAmount = apt?.amount_usd || apt?.amount_bs || 0
+  const calculatedBs = euroRate ? rawAmount * euroRate : apt?.amount_bs || null
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file) return setError('Selecciona una imagen del comprobante')
@@ -49,7 +70,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
     setError(null)
 
     const fileName = `${link.id}/${Date.now()}-${file.name}`
-    const { data: upload, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('payment-proofs')
       .upload(fileName, file)
 
@@ -68,7 +89,6 @@ export default function PaymentPortal({ link, existingProof }: Props) {
       payment_method_used: tab,
       client_name: form.client_name,
       client_phone: form.client_phone,
-      reference_number: form.reference_number,
     })
 
     if (insertError) {
@@ -88,9 +108,9 @@ export default function PaymentPortal({ link, existingProof }: Props) {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A]">
-            Carmen<span className="text-[#B39DDB]">.</span>
+            Carmen Jordán<span className="text-[#B39DDB]">.</span>
           </h1>
-          <p className="text-[#8A8A8A] text-sm mt-1">Portal de pago</p>
+          <p className="text-[#8A8A8A] text-sm mt-1">Portal de pago seguro</p>
         </div>
 
         <div className="bg-white rounded-3xl border border-[#E8E4F0] shadow-sm overflow-hidden">
@@ -98,10 +118,10 @@ export default function PaymentPortal({ link, existingProof }: Props) {
           <div className="bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] p-6">
             <p className="text-xs font-medium text-[#9575CD] uppercase tracking-wider mb-3">Detalle de tu consulta</p>
             <div className="space-y-2 text-sm">
-              {client?.name && <p className="font-medium text-[#4A4A4A] text-base">Hola, {client.name}</p>}
-              <p className="text-[#4A4A4A]">Fecha: {apt?.scheduled_at ? formatDate(apt.scheduled_at) : '-'}</p>
-              <p className="text-[#4A4A4A]">Hora: {apt?.scheduled_at ? formatTime(apt.scheduled_at) : '-'}</p>
-              <p className="text-[#4A4A4A]">Tipo: {apt?.session_type}</p>
+              {client?.name && <p className="font-medium text-[#4A4A4A] text-base">👋 Hola, {client.name}</p>}
+              <p className="text-[#4A4A4A]">📅 Fecha: {apt?.scheduled_at ? formatDate(apt.scheduled_at) : '-'}</p>
+              <p className="text-[#4A4A4A]">🕐 Hora: {apt?.scheduled_at ? formatTime(apt.scheduled_at) : '-'}</p>
+              <p className="text-[#4A4A4A]">💼 Modalidad: {apt?.session_type || 'Individual'}</p>
               {apt?.amount_usd && (
                 <p className="text-xl font-bold text-[#4A4A4A] mt-3">
                   ${apt.amount_usd.toFixed(2)} <span className="text-sm font-normal text-[#8A8A8A]">USD</span>
@@ -114,7 +134,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
             {/* Estados especiales */}
             {isExpired && !isVerified && !hasProof && (
               <div className="text-center py-8">
-                <p className="text-4xl mb-3">Expirado</p>
+                <p className="text-4xl mb-3">⏰</p>
                 <p className="font-medium text-[#4A4A4A]">Este link ha expirado</p>
                 <p className="text-sm text-[#8A8A8A] mt-1">Contacta a Carmen para generar uno nuevo</p>
               </div>
@@ -122,17 +142,17 @@ export default function PaymentPortal({ link, existingProof }: Props) {
 
             {isVerified && (
               <div className="text-center py-8">
-                <p className="text-5xl mb-4">Verificado</p>
+                <p className="text-5xl mb-4">✅</p>
                 <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Pago verificado</p>
-                <p className="text-sm text-[#8A8A8A] mt-2">Tu pago fue confirmado.</p>
+                <p className="text-sm text-[#8A8A8A] mt-2">Tu pago fue confirmado exitosamente.</p>
                 {apt?.meet_link && (
                   <a
                     href={apt.meet_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-4 bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors"
+                    className="inline-block mt-4 bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/20"
                   >
-                    Unirse a la consulta por Meet
+                    💻 Unirse a la consulta por Meet
                   </a>
                 )}
               </div>
@@ -140,20 +160,20 @@ export default function PaymentPortal({ link, existingProof }: Props) {
 
             {isRejected && (
               <div className="text-center py-8">
-                <p className="text-5xl mb-4">Rechazado</p>
-                <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante rechazado</p>
+                <p className="text-5xl mb-4">❌</p>
+                <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante no procesado</p>
                 {existingProof?.rejection_reason && (
                   <p className="text-sm text-red-500 mt-2">{existingProof.rejection_reason}</p>
                 )}
-                <p className="text-sm text-[#8A8A8A] mt-3">Contacta a Carmen para resolver esto</p>
+                <p className="text-sm text-[#8A8A8A] mt-3">Por favor contacta a Carmen para solventar el pago.</p>
               </div>
             )}
 
             {(done || (hasProof && !isVerified && !isRejected)) && (
               <div className="text-center py-8">
-                <p className="text-5xl mb-4">Recibido</p>
+                <p className="text-5xl mb-4">📄</p>
                 <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante recibido</p>
-                <p className="text-sm text-[#8A8A8A] mt-2">Carmen verificara tu pago pronto.</p>
+                <p className="text-sm text-[#8A8A8A] mt-2">Carmen verificará tu pago a la brevedad. ¡Gracias!</p>
               </div>
             )}
 
@@ -162,7 +182,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
               <>
                 {/* Tabs */}
                 {(link.payment_method === 'ambos' || link.payment_method === 'pago_movil') && (
-                  <div className="flex rounded-xl bg-[#FAFAF8] p-1 mb-6">
+                  <div className="flex rounded-xl bg-[#FAFAF8] p-1 mb-6 border border-[#E8E4F0]">
                     {(link.payment_method === 'ambos' || link.payment_method === 'pago_movil') && (
                       <button
                         onClick={() => setTab('pago_movil')}
@@ -170,7 +190,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                           tab === 'pago_movil' ? 'bg-white text-[#4A4A4A] shadow-sm' : 'text-[#8A8A8A]'
                         }`}
                       >
-                        Pago Movil
+                        Pago Móvil
                       </button>
                     )}
                     {(link.payment_method === 'ambos' || link.payment_method === 'zelle') && (
@@ -187,21 +207,31 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                 )}
 
                 {/* Datos de pago */}
-                <div className="bg-[#FAFAF8] rounded-2xl p-4 mb-6 text-sm">
+                <div className="bg-[#FAFAF8] rounded-2xl p-4 mb-6 text-sm border border-[#E8E4F0]">
                   {tab === 'pago_movil' ? (
-                    <div className="space-y-2">
-                      <p className="font-medium text-[#4A4A4A] mb-3">Datos para Pago Movil</p>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Banco:</span><span className="font-medium">{PAGO_MOVIL.banco}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Cedula:</span><span className="font-medium">{PAGO_MOVIL.cedula}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Telefono:</span><span className="font-medium">{PAGO_MOVIL.telefono}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Monto:</span><span className="font-bold text-[#B39DDB]">Bs. [tasa del dia]</span></div>
+                    <div className="space-y-2.5">
+                      <p className="font-medium text-[#4A4A4A] mb-2">📱 Datos para Pago Móvil</p>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Banco:</span><span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.banco}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Cédula:</span><span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.cedula}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Teléfono:</span><span className="font-medium text-[#4A4A4A]">{PAGO_MOVIL.telefono}</span></div>
+                      <div className="flex justify-between items-center pt-2 border-t border-[#E8E4F0]">
+                        <span className="text-[#8A8A8A] font-medium">Monto a pagar:</span>
+                        <span className="font-bold text-[#9575CD] text-base">
+                          {calculatedBs
+                            ? `Bs. ${calculatedBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            : 'Calculando...'}
+                        </span>
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <p className="font-medium text-[#4A4A4A] mb-3">Datos para Zelle</p>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Nombre:</span><span className="font-medium">{ZELLE.nombre}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Email:</span><span className="font-medium">{ZELLE.email}</span></div>
-                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Monto:</span><span className="font-bold text-[#B39DDB]">${apt?.amount_usd?.toFixed(2)} USD</span></div>
+                    <div className="space-y-2.5">
+                      <p className="font-medium text-[#4A4A4A] mb-2">🏦 Datos para Zelle</p>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Titular:</span><span className="font-medium text-[#4A4A4A]">{ZELLE.nombre}</span></div>
+                      <div className="flex justify-between"><span className="text-[#8A8A8A]">Email / Cuenta:</span><span className="font-medium text-[#4A4A4A]">{ZELLE.email}</span></div>
+                      <div className="flex justify-between items-center pt-2 border-t border-[#E8E4F0]">
+                        <span className="text-[#8A8A8A] font-medium">Monto a pagar:</span>
+                        <span className="font-bold text-[#9575CD] text-base">${apt?.amount_usd?.toFixed(2)} USD</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -216,45 +246,36 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       value={form.client_name}
                       onChange={(e) => setForm({ ...form, client_name: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
+                      placeholder="Nombre y apellido"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu telefono</label>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu teléfono</label>
                     <input
                       type="tel"
                       value={form.client_phone}
                       onChange={(e) => setForm({ ...form, client_phone: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
-                      placeholder="0412-0000000"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Numero de referencia</label>
-                    <input
-                      type="text"
-                      value={form.reference_number}
-                      onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm"
-                      placeholder="Ej: 123456789"
+                      placeholder="04121234567"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Captura del comprobante *</label>
                     <div
-                      className="border-2 border-dashed border-[#E8E4F0] rounded-xl p-6 text-center cursor-pointer hover:border-[#B39DDB] transition-colors"
+                      className="border-2 border-dashed border-[#E8E4F0] rounded-xl p-6 text-center cursor-pointer hover:border-[#B39DDB] transition-colors bg-[#FAFAF8]"
                       onClick={() => document.getElementById('fileInput')?.click()}
                     >
                       {file ? (
                         <div>
-                          <p className="text-2xl mb-1">Archivo seleccionado</p>
+                          <p className="text-2xl mb-1">📸</p>
                           <p className="text-sm font-medium text-[#4A4A4A]">{file.name}</p>
                           <p className="text-xs text-[#8A8A8A]">{(file.size / 1024).toFixed(0)} KB</p>
                         </div>
                       ) : (
                         <div>
-                          <p className="text-3xl mb-2">Subir</p>
-                          <p className="text-sm text-[#8A8A8A]">Toca para subir la captura</p>
-                          <p className="text-xs text-[#8A8A8A] mt-1">JPG, PNG o PDF</p>
+                          <p className="text-3xl mb-2">📤</p>
+                          <p className="text-sm text-[#4A4A4A] font-medium">Toca para subir la captura del pago</p>
+                          <p className="text-xs text-[#8A8A8A] mt-1">Formato JPG, PNG o PDF</p>
                         </div>
                       )}
                       <input
@@ -276,7 +297,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                   <button
                     type="submit"
                     disabled={uploading}
-                    className="w-full bg-[#B39DDB] text-white py-3.5 rounded-xl font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 text-sm"
+                    className="w-full bg-[#B39DDB] text-white py-3.5 rounded-xl font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 text-sm shadow-md shadow-[#B39DDB]/30"
                   >
                     {uploading ? 'Enviando comprobante...' : 'Enviar comprobante'}
                   </button>
@@ -287,7 +308,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
         </div>
 
         <p className="text-center text-xs text-[#8A8A8A] mt-6">
-          Carmen - Psicologa Clinica Online
+          🌸 Carmen Jordán — Psicóloga Clínica Online
         </p>
       </div>
     </div>
