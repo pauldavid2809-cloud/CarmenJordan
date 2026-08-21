@@ -19,9 +19,9 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#E8E4F0]">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="font-playfair text-xl font-semibold text-[#4A4A4A]">
-            Carmen<span className="text-[#B39DDB]">.</span>
-          </div>
+          <Link href="/" className="font-playfair text-xl font-semibold text-[#4A4A4A]">
+            Psico<span className="text-[#B39DDB]">Online.</span>
+          </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-[#8A8A8A]">
             <a href="#especialidades" className="hover:text-[#B39DDB] transition-colors">Especialidades</a>
             <a href="#como-funciona" className="hover:text-[#B39DDB] transition-colors">Cómo funciona</a>
@@ -29,7 +29,7 @@ export default function LandingPage() {
           </div>
           <a
             href="#contacto"
-            className="bg-[#B39DDB] text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-[#9575CD] transition-colors"
+            className="bg-[#B39DDB] text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-[#9575CD] transition-colors shadow-sm"
           >
             Agendar consulta
           </a>
@@ -41,15 +41,15 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <span className="inline-block bg-[#E8E4F0] text-[#9575CD] text-xs font-medium px-3 py-1 rounded-full mb-6">
-                Psicóloga clínica online
+              <span className="inline-block bg-[#E8E4F0] text-[#9575CD] text-xs font-semibold px-3 py-1 rounded-full mb-6">
+                Psicología Clínica Online
               </span>
-              <h1 className="font-playfair text-5xl md:text-6xl font-semibold text-[#4A4A4A] leading-tight mb-6">
+              <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-semibold text-[#4A4A4A] leading-tight mb-6">
                 Un espacio seguro
                 <span className="text-[#B39DDB] italic"> para ti.</span>
               </h1>
-              <p className="text-[#8A8A8A] text-lg leading-relaxed mb-8">
-                Hola, soy Carmen Jordán. Te acompaño en tu proceso de crecimiento personal y bienestar emocional desde la comodidad de tu hogar.
+              <p className="text-[#8A8A8A] text-base sm:text-lg leading-relaxed mb-8">
+                Te acompañamos en tu proceso de crecimiento personal y bienestar emocional desde la comodidad de tu hogar con sesiones personalizadas y confidenciales.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a
@@ -73,25 +73,38 @@ export default function LandingPage() {
                 <div>📍 Modalidad Online</div>
               </div>
             </div>
+
+            {/* Aesthetic Demo Hero Card */}
             <div className="relative max-w-md mx-auto w-full">
-              <div className="w-full aspect-[4/5] sm:aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] relative">
-                <img
-                  src="/carmen.jpg"
-                  alt="Carmen Jordán — Psicóloga Clínica"
-                  className="w-full h-full object-cover object-[50%_12%] hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-6">
-                  <div>
-                    <p className="text-white font-playfair text-2xl font-bold">Carmen Jordán</p>
-                    <p className="text-white/90 text-sm font-medium">Psicóloga Clínica</p>
+              <div className="w-full aspect-[4/5] sm:aspect-square rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-gradient-to-br from-[#E8E4F0] via-[#F3F0F8] to-[#FAFAF8] p-7 flex flex-col justify-between relative">
+                <div className="flex justify-between items-start">
+                  <span className="text-3xl">🌸</span>
+                  <span className="bg-white/80 backdrop-blur-sm text-[#9575CD] text-xs font-semibold px-3 py-1 rounded-full border border-[#E8E4F0]">
+                    Atención Online
+                  </span>
+                </div>
+                <div className="my-auto text-center py-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-white shadow-sm flex items-center justify-center text-3xl sm:text-4xl mb-3 border border-[#E8E4F0]">
+                    🌿
+                  </div>
+                  <h3 className="font-playfair text-2xl font-bold text-[#4A4A4A]">Bienestar & Calma</h3>
+                  <p className="text-xs text-[#8A8A8A] mt-1">Acompañamiento profesional y personalizado</p>
+                </div>
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-[#E8E4F0]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#4A4A4A]">Consultas 100% Online</p>
+                      <p className="text-xs text-[#8A8A8A]">Google Meet · Horarios Flexibles</p>
+                    </div>
+                    <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">Disponible</span>
                   </div>
                 </div>
               </div>
               <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-white rounded-2xl px-4 py-2.5 shadow-xl border border-[#E8E4F0] flex items-center gap-2">
                 <span className="text-lg">⭐️</span>
                 <div>
-                  <p className="text-xs font-bold text-[#4A4A4A]">5.0 · Online</p>
-                  <p className="text-[10px] text-[#8A8A8A]">Atención Personalizada</p>
+                  <p className="text-xs font-bold text-[#4A4A4A]">5.0 · Calificación</p>
+                  <p className="text-[10px] text-[#8A8A8A]">Pacientes Verificados</p>
                 </div>
               </div>
             </div>
@@ -104,7 +117,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="font-playfair text-4xl font-semibold text-[#4A4A4A] mb-4">Áreas de especialidad</h2>
-            <p className="text-[#8A8A8A] text-lg max-w-xl mx-auto">Cada persona es única. Mi enfoque se adapta a tus necesidades y objetivos terapéuticos.</p>
+            <p className="text-[#8A8A8A] text-lg max-w-xl mx-auto">Cada persona es única. El enfoque terapéutico se adapta a tus necesidades y objetivos.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {specialties.map((s) => (
@@ -149,13 +162,13 @@ export default function LandingPage() {
             Da el primer paso
           </h2>
           <p className="text-[#8A8A8A] text-lg mb-8">
-            Escríbeme por WhatsApp y juntas encontramos el horario ideal para ti.
+            Escríbenos por WhatsApp y coordinamos el horario ideal para tu sesión.
           </p>
           <a
-            href="https://wa.me/584121702806?text=Hola%20Carmen%2C%20me%20gustar%C3%ADa%20agendar%20una%20consulta."
+            href="https://wa.me/?text=Hola%2C%20me%20gustar%C3%ADa%20agendar%20una%20consulta%20psicol%C3%B3gica%20online."
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-green-500 text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-green-600 transition-all hover:shadow-lg"
+            className="inline-flex items-center gap-3 bg-green-500 text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-green-600 transition-all hover:shadow-lg shadow-md"
           >
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -163,24 +176,15 @@ export default function LandingPage() {
             Escribir por WhatsApp
           </a>
           <p className="text-[#8A8A8A] text-sm mt-6">
-            También puedes escribirme a{' '}
-            <a
-              href="https://instagram.com/carmenjordanc"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#B39DDB] hover:underline font-medium"
-            >
-              @carmenjordanc
-            </a>{' '}
-            en Instagram
+            También puedes seguir las novedades en <span className="text-[#9575CD] font-medium">@psicologia.online</span>
           </p>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="py-8 px-6 text-center border-t border-[#E8E4F0]">
-        <p className="font-playfair text-lg text-[#4A4A4A] mb-1">Carmen Jordán<span className="text-[#B39DDB]">.</span></p>
-        <p className="text-[#8A8A8A] text-sm">Psicóloga Clínica · Consultas Online</p>
+        <p className="font-playfair text-lg text-[#4A4A4A] mb-1">Psico<span className="text-[#B39DDB]">Online.</span></p>
+        <p className="text-[#8A8A8A] text-sm">Plataforma de Psicología Clínica · Consultas Online</p>
       </footer>
     </div>
   )

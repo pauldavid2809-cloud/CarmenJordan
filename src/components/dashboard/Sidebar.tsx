@@ -31,9 +31,9 @@ export default function DashboardSidebar() {
       <div className="p-6 border-b border-[#E8E4F0] flex items-center justify-between">
         <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
           <h1 className="font-playfair text-2xl font-semibold text-[#4A4A4A]">
-            Carmen<span className="text-[#B39DDB]">.</span>
+            Psico<span className="text-[#B39DDB]">Online.</span>
           </h1>
-          <p className="text-xs text-[#8A8A8A] mt-0.5">Panel de gestión</p>
+          <p className="text-xs text-[#8A8A8A] mt-0.5">Panel de gestión profesional</p>
         </Link>
         {/* Close button on mobile */}
         <button
@@ -70,14 +70,12 @@ export default function DashboardSidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-[#E8E4F0] bg-white">
         <div className="flex items-center gap-3 px-3 py-2 mb-2">
-          <img
-            src="/carmen.jpg"
-            alt="Carmen Jordán"
-            className="w-10 h-10 rounded-full object-cover object-[50%_15%] border-2 border-[#B39DDB]/40 shadow-sm"
-          />
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] border-2 border-[#B39DDB]/40 shadow-sm flex items-center justify-center text-lg">
+            🌸
+          </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[#4A4A4A] truncate">Carmen Jordán</p>
-            <p className="text-xs text-[#8A8A8A] truncate">Psicóloga Clínica</p>
+            <p className="text-sm font-medium text-[#4A4A4A] truncate">Psicología Clínica</p>
+            <p className="text-xs text-[#8A8A8A] truncate">Cuenta Profesional</p>
           </div>
         </div>
         <button
@@ -103,15 +101,13 @@ export default function DashboardSidebar() {
             ☰
           </button>
           <Link href="/dashboard" className="font-playfair text-xl font-semibold text-[#4A4A4A]">
-            Carmen<span className="text-[#B39DDB]">.</span>
+            Psico<span className="text-[#B39DDB]">Online.</span>
           </Link>
         </div>
         <div className="flex items-center gap-2">
-          <img
-            src="/carmen.jpg"
-            alt="Carmen"
-            className="w-8 h-8 rounded-full object-cover object-[50%_15%] border border-[#B39DDB]/40"
-          />
+          <div className="w-8 h-8 rounded-full bg-[#E8E4F0] border border-[#B39DDB]/40 flex items-center justify-center text-sm">
+            🌸
+          </div>
         </div>
       </header>
 

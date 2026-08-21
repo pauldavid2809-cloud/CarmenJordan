@@ -7,10 +7,10 @@ import { formatDate, formatTime } from '@/lib/utils'
 const PAGO_MOVIL = {
   banco: 'Banco Nacional de Crédito (BNC)',
   bancoNombre: 'Banco Nacional de Credito',
-  cedula: 'V-25.988.653',
-  cedulaRaw: '25988653',
-  telefono: '0412-1702806',
-  telefonoRaw: '04121702806',
+  cedula: 'V-20.123.456',
+  cedulaRaw: '20123456',
+  telefono: '0412-0000000',
+  telefonoRaw: '04120000000',
 }
 
 interface Props {
@@ -117,7 +117,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A]">
-            Carmen Jordán<span className="text-[#B39DDB]">.</span>
+            Psico<span className="text-[#B39DDB]">Online.</span>
           </h1>
           <p className="text-[#8A8A8A] text-sm mt-1">Portal de pago seguro</p>
         </div>
@@ -140,7 +140,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
               <div className="text-center py-8">
                 <p className="text-4xl mb-3">⏰</p>
                 <p className="font-medium text-[#4A4A4A]">Este link ha expirado</p>
-                <p className="text-sm text-[#8A8A8A] mt-1">Contacta a Carmen para generar uno nuevo</p>
+                <p className="text-sm text-[#8A8A8A] mt-1">Contacta a tu terapeuta para generar uno nuevo</p>
               </div>
             )}
 
@@ -169,7 +169,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                 {existingProof?.rejection_reason && (
                   <p className="text-sm text-red-500 mt-2">{existingProof.rejection_reason}</p>
                 )}
-                <p className="text-sm text-[#8A8A8A] mt-3">Por favor contacta a Carmen para solventar el pago.</p>
+                <p className="text-sm text-[#8A8A8A] mt-3">Por favor contacta a tu terapeuta para solventar el pago.</p>
               </div>
             )}
 
@@ -177,7 +177,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
               <div className="text-center py-8">
                 <p className="text-5xl mb-4">📄</p>
                 <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante recibido</p>
-                <p className="text-sm text-[#8A8A8A] mt-2">Carmen verificará tu pago a la brevedad. ¡Gracias!</p>
+                <p className="text-sm text-[#8A8A8A] mt-2">El pago será verificado a la brevedad. ¡Gracias!</p>
               </div>
             )}
 
@@ -360,7 +360,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
         </div>
 
         <p className="text-center text-xs text-[#8A8A8A] mt-6">
-          🌸 Carmen Jordán — Psicóloga Clínica Online
+          🌸 PsicoOnline — Consultas Psicológicas Online
         </p>
       </div>
     </div>

@@ -63,7 +63,7 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6 sm:mb-8">
-        <h1 className="font-playfair text-2xl sm:text-3xl font-semibold text-[#4A4A4A]">Bienvenida, Carmen 🌸</h1>
+        <h1 className="font-playfair text-2xl sm:text-3xl font-semibold text-[#4A4A4A]">Panel de Consultas 🌸</h1>
         <p className="text-sm text-[#8A8A8A] mt-1 capitalize">{formatDate(new Date().toISOString())}</p>
       </div>
 

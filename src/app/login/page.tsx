@@ -17,7 +17,7 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })\
 
     if (error) {
       setError('Credenciales incorrectas. Verifica tu email y contraseña.')
@@ -32,15 +32,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <img
-            src="/carmen.jpg"
-            alt="Carmen Jordán"
-            className="w-20 h-20 rounded-full object-cover object-[50%_15%] border-4 border-white shadow-lg mx-auto mb-3"
-          />
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] border-4 border-white shadow-lg mx-auto mb-3 flex items-center justify-center text-3xl">
+            🌸
+          </div>
           <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A] mb-1">
-            Carmen Jordán<span className="text-[#B39DDB]">.</span>
+            Psico<span className="text-[#B39DDB]">Online.</span>
           </h1>
-          <p className="text-xs text-[#8A8A8A]">Panel de administración</p>
+          <p className="text-xs text-[#8A8A8A]">Panel de administración profesional</p>
         </div>
 
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-[#E8E4F0]">
@@ -55,7 +53,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] bg-white text-[#4A4A4A] transition-colors"
-                placeholder="carmen@ejemplo.com"
+                placeholder="demo@psicologia.com"
               />
             </div>
 
@@ -80,7 +78,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#B39DDB] text-white py-3 rounded-xl font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-[#B39DDB] text-white py-3 rounded-xl font-medium hover:bg-[#9575CD] transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
             >
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
