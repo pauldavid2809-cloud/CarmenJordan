@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const supabase = await createClient()
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('psico_profiles')
     .select('full_name, title, bio')
     .eq('slug', slug)
     .single()
@@ -44,7 +44,7 @@ export default async function PsychologistPublicPage({ params }: Props) {
 
   const supabase = await createClient()
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('psico_profiles')
     .select('*')
     .eq('slug', slug)
     .single()

@@ -24,7 +24,7 @@ export default function SuperAdminPage() {
 
     // Perfil del usuario actual
     const { data: myProfile } = await supabase
-      .from('profiles')
+      .from('psico_profiles')
       .select('*')
       .eq('id', user.id)
       .single()
@@ -33,7 +33,7 @@ export default function SuperAdminPage() {
 
     if (myProfile?.is_admin) {
       const { data } = await supabase
-        .from('profiles')
+        .from('psico_profiles')
         .select('*')
         .order('created_at', { ascending: false })
       setProfiles((data as Profile[]) || [])
@@ -58,7 +58,7 @@ export default function SuperAdminPage() {
     }
 
     const { error } = await supabase
-      .from('profiles')
+      .from('psico_profiles')
       .update(updatePayload)
       .eq('id', profileId)
 

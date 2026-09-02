@@ -39,7 +39,7 @@ export default function ConsultorioVirtualPage({ params }: Props) {
 
     if (user) {
       const { data: prof } = await supabase
-        .from('profiles')
+        .from('psico_profiles')
         .select('full_name')
         .eq('id', user.id)
         .single()

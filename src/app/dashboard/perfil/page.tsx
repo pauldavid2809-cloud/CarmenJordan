@@ -52,7 +52,7 @@ export default function PerfilPage() {
     if (!user) return
 
     const { data } = await supabase
-      .from('profiles')
+      .from('psico_profiles')
       .select('*')
       .eq('id', user.id)
       .single()
@@ -80,7 +80,7 @@ export default function PerfilPage() {
     setSuccessMsg(null)
 
     const { error } = await supabase
-      .from('profiles')
+      .from('psico_profiles')
       .update({
         full_name: fullName.trim(),
         title: title.trim(),

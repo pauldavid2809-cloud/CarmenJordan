@@ -52,6 +52,7 @@ export interface Appointment {
   created_at: string
   clients?: Client
   profiles?: Profile
+  psico_profiles?: Profile
 }
 
 export interface PaymentLink {

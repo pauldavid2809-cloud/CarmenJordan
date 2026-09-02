@@ -39,7 +39,7 @@ export default function RegisterPage() {
     try {
       // 1. Verificar si el slug ya existe
       const { data: existingSlug } = await supabase
-        .from('profiles')
+        .from('psico_profiles')
         .select('id')
         .eq('slug', slug.trim())
         .maybeSingle()
@@ -78,7 +78,7 @@ export default function RegisterPage() {
 
       // 3. Crear el perfil de la psicóloga con 3 días de prueba gratis
       const trialEnds = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
-      const { error: profileError } = await supabase.from('profiles').insert({
+      const { error: profileError } = await supabase.from('psico_profiles').insert({
         id: user.id,
         slug: slug.trim(),
         full_name: fullName.trim(),

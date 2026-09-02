@@ -15,7 +15,7 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
       appointments(
         *,
         clients(name,phone),
-        profiles:psychologist_id(*)
+        psico_profiles:psychologist_id(*)
       )
     `)
     .eq('token', token)

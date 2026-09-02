@@ -21,7 +21,7 @@ export default async function SalaPacientePage({ params }: Props) {
       appointments(
         *,
         clients(*),
-        profiles:psychologist_id(*)
+        psico_profiles:psychologist_id(*)
       )
     `)
     .eq('token', token)
@@ -31,7 +31,7 @@ export default async function SalaPacientePage({ params }: Props) {
 
   const apt = link.appointments
   const client = apt?.clients
-  const profile = apt?.profiles
+  const profile = apt?.psico_profiles || apt?.profiles
 
   const isVerified = link.status === 'verificado'
   const isExpired = new Date(link.expires_at) < new Date()

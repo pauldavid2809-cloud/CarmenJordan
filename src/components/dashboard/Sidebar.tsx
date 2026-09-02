@@ -26,7 +26,7 @@ export default function DashboardSidebar() {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      const { data } = await supabase.from('psico_profiles').select('*').eq('id', user.id).single()
       if (data) setProfile(data as Profile)
     }
     loadProfile()

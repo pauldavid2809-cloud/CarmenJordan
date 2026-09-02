@@ -26,7 +26,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
 
   const apt = link.appointments
   const client = apt?.clients
-  const profile = apt?.profiles
+  const profile = apt?.psico_profiles || apt?.profiles
 
   const isExpired = new Date(link.expires_at) < new Date()
   const isVerified = link.status === 'verificado'
