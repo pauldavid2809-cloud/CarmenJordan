@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatTime, getStatusColor, getStatusLabel, generateWhatsAppLink } from '@/lib/utils'
 
@@ -99,7 +100,15 @@ export default function CitasPage() {
                           <p className="text-xs text-[#8A8A8A] truncate">{apt.session_type} · ${apt.amount_usd || 0} USD</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap justify-end">
+                        <Link
+                          href={`/dashboard/sala/${apt.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="bg-[#B39DDB] hover:bg-[#9575CD] text-white px-3 py-1.5 rounded-xl text-xs font-medium transition-all shadow-sm flex items-center gap-1.5 hover:scale-[1.02]"
+                          title="Abrir Consultorio Virtual (Videollamada y Notas Clínicas)"
+                        >
+                          <span>📹</span> Consultorio
+                        </Link>
                         {apt.meet_link && (
                           <>
                             <button
@@ -155,7 +164,15 @@ export default function CitasPage() {
                 {selectedApt.clients?.phone && <p className="text-[#8A8A8A]">📱 Teléfono: {selectedApt.clients.phone}</p>}
               </div>
 
-              {/* Enlace de Google Meet */}
+              {/* Botón Consultorio Virtual */}
+              <Link
+                href={`/dashboard/sala/${selectedApt.id}`}
+                className="w-full bg-[#B39DDB] hover:bg-[#9575CD] text-white py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all shadow-md shadow-[#B39DDB]/30 flex items-center justify-center gap-2 hover:scale-[1.01]"
+              >
+                <span>📹</span> Entrar al Consultorio Virtual (Llamada + Notas)
+              </Link>
+
+              {/* Enlace alternativo de respaldo */}
               <div>
                 <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Enlace de Google Meet</label>
                 <input

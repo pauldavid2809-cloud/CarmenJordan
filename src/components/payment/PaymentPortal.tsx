@@ -172,18 +172,26 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                 <p className="text-5xl mb-4">✅</p>
                 <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Pago verificado</p>
                 <p className="text-sm text-[#8A8A8A] mt-2">Tu pago fue confirmado exitosamente.</p>
-                {apt?.meet_link ? (
+                <div className="mt-6 flex flex-col items-center gap-3">
                   <a
-                    href={apt.meet_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-4 bg-[#B39DDB] text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-[#9575CD] transition-colors shadow-md shadow-[#B39DDB]/30"
+                    href={`/sala/${link.token}`}
+                    className="inline-flex items-center gap-2 bg-[#B39DDB] text-white px-7 py-3.5 rounded-2xl text-sm sm:text-base font-semibold hover:bg-[#9575CD] transition-all shadow-lg shadow-[#B39DDB]/30 hover:scale-[1.02]"
                   >
-                    💻 Unirse a la consulta por Google Meet
+                    <span>📹</span>
+                    <span>Entrar a mi sala de consulta virtual</span>
                   </a>
-                ) : (
-                  <p className="text-xs text-[#8A8A8A] mt-3">Tu terapeuta te enviará el link de sesión.</p>
-                )}
+
+                  {apt?.meet_link && (
+                    <a
+                      href={apt.meet_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[#8A8A8A] hover:text-[#4A4A4A] underline mt-1"
+                    >
+                      O unirse mediante enlace externo de respaldo ↗
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 
