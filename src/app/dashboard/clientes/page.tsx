@@ -30,7 +30,16 @@ export default function ClientesPage() {
   async function saveClient(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    await supabase.from('clients').insert(form)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      alert('Debes iniciar sesión')
+      setSaving(false)
+      return
+    }
+    await supabase.from('clients').insert({
+      ...form,
+      psychologist_id: user.id,
+    })
     setForm({ name: '', phone: '', email: '', notes: '' })
     setShowModal(false)
     setSaving(false)

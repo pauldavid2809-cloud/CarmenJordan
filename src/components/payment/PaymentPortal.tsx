@@ -4,26 +4,19 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatTime } from '@/lib/utils'
 
-const PAGO_MOVIL = {
-  banco: 'Banco Nacional de Crédito (BNC)',
-  bancoNombre: 'Banco Nacional de Credito',
-  cedula: 'V-20.123.456',
-  cedulaRaw: '20123456',
-  telefono: '0412-0000000',
-  telefonoRaw: '04120000000',
-}
-
 interface Props {
   link: any
   existingProof: any | null
 }
 
 export default function PaymentPortal({ link, existingProof }: Props) {
+  const [activeTab, setActiveTab] = useState<'pago_movil' | 'zelle'>('pago_movil')
   const [euroRate, setEuroRate] = useState<number | null>(null)
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [form, setForm] = useState({
     client_name: '',
     client_phone: '',
+    reference_number: '',
   })
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -33,11 +26,28 @@ export default function PaymentPortal({ link, existingProof }: Props) {
 
   const apt = link.appointments
   const client = apt?.clients
+  const profile = apt?.profiles
 
   const isExpired = new Date(link.expires_at) < new Date()
   const isVerified = link.status === 'verificado'
   const isRejected = link.status === 'rechazado'
   const hasProof = !!existingProof || link.status === 'subido'
+
+  // Datos dinámicos de Pago Móvil de la psicóloga
+  const pagoMovil = {
+    banco: profile?.pago_movil_banco || 'Banco por definir',
+    bancoNombre: profile?.pago_movil_banco || 'Banco por definir',
+    cedula: profile?.pago_movil_cedula || 'V-00.000.000',
+    cedulaRaw: (profile?.pago_movil_cedula || '').replace(/[^0-9]/g, ''),
+    telefono: profile?.pago_movil_telefono || '0412-0000000',
+    telefonoRaw: (profile?.pago_movil_telefono || '').replace(/[^0-9]/g, ''),
+  }
+
+  // Datos dinámicos de Zelle de la psicóloga
+  const zelle = {
+    email: profile?.zelle_email || '',
+    holder: profile?.zelle_holder || profile?.full_name || '',
+  }
 
   // Consulta automática de la cotización
   useEffect(() => {
@@ -65,6 +75,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
   const rawBsNumber = calculatedBs ? calculatedBs.toFixed(2) : ''
 
   function copyToClipboard(text: string, fieldName: string) {
+    if (!text) return
     navigator.clipboard.writeText(text)
     setCopiedField(fieldName)
     setTimeout(() => {
@@ -78,37 +89,43 @@ export default function PaymentPortal({ link, existingProof }: Props) {
     setUploading(true)
     setError(null)
 
-    const fileName = `${link.id}/${Date.now()}-${file.name}`
-    const { error: uploadError } = await supabase.storage
-      .from('payment-proofs')
-      .upload(fileName, file)
+    try {
+      const fileName = `${link.id}/${Date.now()}-${file.name}`
+      const { error: uploadError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(fileName, file)
 
-    if (uploadError) {
-      setError('Error al subir el archivo. Intenta de nuevo.')
+      if (uploadError) {
+        setError('Error al subir el archivo. Intenta de nuevo.')
+        setUploading(false)
+        return
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('payment-proofs').getPublicUrl(fileName)
+
+      const { error: insertError } = await supabase.from('payment_proofs').insert({
+        payment_link_id: link.id,
+        file_url: publicUrl,
+        file_name: file.name,
+        payment_method_used: activeTab,
+        client_name: form.client_name,
+        client_phone: form.client_phone,
+        reference_number: form.reference_number || null,
+      })
+
+      if (insertError) {
+        setError('Error al registrar el comprobante. Intenta de nuevo.')
+        setUploading(false)
+        return
+      }
+
+      await supabase.from('payment_links').update({ status: 'subido' }).eq('id', link.id)
+      setDone(true)
       setUploading(false)
-      return
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from('payment-proofs').getPublicUrl(fileName)
-
-    const { error: insertError } = await supabase.from('payment_proofs').insert({
-      payment_link_id: link.id,
-      file_url: publicUrl,
-      file_name: file.name,
-      payment_method_used: 'pago_movil',
-      client_name: form.client_name,
-      client_phone: form.client_phone,
-    })
-
-    if (insertError) {
-      setError('Error al guardar el comprobante. Intenta de nuevo.')
+    } catch (err: any) {
+      setError('Error inesperado al procesar comprobante.')
       setUploading(false)
-      return
     }
-
-    await supabase.from('payment_links').update({ status: 'subido' }).eq('id', link.id)
-    setDone(true)
-    setUploading(false)
   }
 
   return (
@@ -116,21 +133,27 @@ export default function PaymentPortal({ link, existingProof }: Props) {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="font-playfair text-3xl font-semibold text-[#4A4A4A]">
-            Psico<span className="text-[#B39DDB]">Online.</span>
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] border border-[#B39DDB]/40 shadow-sm mx-auto mb-2 flex items-center justify-center text-2xl">
+            🌸
+          </div>
+          <h1 className="font-playfair text-2xl font-semibold text-[#4A4A4A]">
+            {profile?.full_name || 'Consulta Psicológica'}
           </h1>
-          <p className="text-[#8A8A8A] text-sm mt-1">Portal de pago seguro</p>
+          <p className="text-[#8A8A8A] text-xs mt-0.5">Portal de pago seguro</p>
         </div>
 
         <div className="bg-white rounded-3xl border border-[#E8E4F0] shadow-sm overflow-hidden">
           {/* Detalles de la consulta */}
           <div className="bg-gradient-to-br from-[#E8E4F0] to-[#F3F0F8] p-6">
-            <p className="text-xs font-medium text-[#9575CD] uppercase tracking-wider mb-3">Detalle de tu consulta</p>
-            <div className="space-y-2 text-sm">
-              {client?.name && <p className="font-medium text-[#4A4A4A] text-base">👋 Hola, {client.name}</p>}
+            <p className="text-xs font-medium text-[#9575CD] uppercase tracking-wider mb-2">Detalle de tu cita</p>
+            <div className="space-y-1.5 text-sm">
+              {client?.name && <p className="font-semibold text-[#4A4A4A] text-base">👋 Hola, {client.name}</p>}
               <p className="text-[#4A4A4A]">📅 Fecha: {apt?.scheduled_at ? formatDate(apt.scheduled_at) : '-'}</p>
               <p className="text-[#4A4A4A]">🕐 Hora: {apt?.scheduled_at ? formatTime(apt.scheduled_at) : '-'}</p>
               <p className="text-[#4A4A4A]">💼 Modalidad: {apt?.session_type || 'Individual'}</p>
+              {apt?.amount_usd && (
+                <p className="text-[#4A4A4A] font-medium">💵 Tarifa: ${apt.amount_usd} USD</p>
+              )}
             </div>
           </div>
 
@@ -149,15 +172,17 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                 <p className="text-5xl mb-4">✅</p>
                 <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Pago verificado</p>
                 <p className="text-sm text-[#8A8A8A] mt-2">Tu pago fue confirmado exitosamente.</p>
-                {apt?.meet_link && (
+                {apt?.meet_link ? (
                   <a
                     href={apt.meet_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-4 bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/20"
+                    className="inline-block mt-4 bg-[#B39DDB] text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-[#9575CD] transition-colors shadow-md shadow-[#B39DDB]/30"
                   >
-                    💻 Unirse a la consulta por Meet
+                    💻 Unirse a la consulta por Google Meet
                   </a>
+                ) : (
+                  <p className="text-xs text-[#8A8A8A] mt-3">Tu terapeuta te enviará el link de sesión.</p>
                 )}
               </div>
             )}
@@ -177,121 +202,200 @@ export default function PaymentPortal({ link, existingProof }: Props) {
               <div className="text-center py-8">
                 <p className="text-5xl mb-4">📄</p>
                 <p className="font-playfair text-xl font-medium text-[#4A4A4A]">Comprobante recibido</p>
-                <p className="text-sm text-[#8A8A8A] mt-2">El pago será verificado a la brevedad. ¡Gracias!</p>
+                <p className="text-sm text-[#8A8A8A] mt-2">Tu terapeuta verificará el pago a la brevedad. ¡Gracias!</p>
               </div>
             )}
 
-            {/* Formulario de Pago Móvil */}
+            {/* Formulario de Pago */}
             {!isExpired && !isVerified && !isRejected && !done && !hasProof && (
               <>
-                {/* Datos de Pago Móvil — Copiado dato por dato */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <p className="font-semibold text-[#4A4A4A] text-sm flex items-center gap-1.5">
-                      <span>📱</span> Datos para Pago Móvil
-                    </p>
-                    <span className="text-[11px] text-[#8A8A8A]">Toca cualquier dato para copiar</span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {/* Banco */}
-                    <div
-                      onClick={() => copyToClipboard(PAGO_MOVIL.bancoNombre, 'banco')}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        copiedField === 'banco'
-                          ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
-                          : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
+                {/* Selector de método de pago */}
+                <div className="flex rounded-xl bg-[#FAFAF8] p-1 border border-[#E8E4F0] mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('pago_movil')}
+                    className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      activeTab === 'pago_movil'
+                        ? 'bg-white text-[#9575CD] shadow-sm font-semibold'
+                        : 'text-[#8A8A8A] hover:text-[#4A4A4A]'
+                    }`}
+                  >
+                    📱 Pago Móvil
+                  </button>
+                  {zelle.email && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('zelle')}
+                      className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                        activeTab === 'zelle'
+                          ? 'bg-white text-[#9575CD] shadow-sm font-semibold'
+                          : 'text-[#8A8A8A] hover:text-[#4A4A4A]'
                       }`}
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Banco</p>
-                        <p className="font-medium text-[#4A4A4A] text-sm truncate">{PAGO_MOVIL.banco}</p>
-                      </div>
-                      <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
-                        copiedField === 'banco'
-                          ? 'bg-green-500 text-white shadow-sm'
-                          : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
-                      }`}>
-                        {copiedField === 'banco' ? '✓ Copiado' : 'Copiar'}
-                      </span>
-                    </div>
-
-                    {/* Cédula */}
-                    <div
-                      onClick={() => copyToClipboard(PAGO_MOVIL.cedulaRaw, 'cedula')}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        copiedField === 'cedula'
-                          ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
-                          : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Cédula</p>
-                        <p className="font-semibold text-[#4A4A4A] text-sm">{PAGO_MOVIL.cedula}</p>
-                      </div>
-                      <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
-                        copiedField === 'cedula'
-                          ? 'bg-green-500 text-white shadow-sm'
-                          : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
-                      }`}>
-                        {copiedField === 'cedula' ? '✓ Copiado' : 'Copiar'}
-                      </span>
-                    </div>
-
-                    {/* Teléfono */}
-                    <div
-                      onClick={() => copyToClipboard(PAGO_MOVIL.telefonoRaw, 'telefono')}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        copiedField === 'telefono'
-                          ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
-                          : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Teléfono</p>
-                        <p className="font-semibold text-[#4A4A4A] text-sm">{PAGO_MOVIL.telefono}</p>
-                      </div>
-                      <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
-                        copiedField === 'telefono'
-                          ? 'bg-green-500 text-white shadow-sm'
-                          : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
-                      }`}>
-                        {copiedField === 'telefono' ? '✓ Copiado' : 'Copiar'}
-                      </span>
-                    </div>
-
-                    {/* Monto */}
-                    <div
-                      onClick={() => calculatedBs && copyToClipboard(rawBsNumber, 'monto')}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        copiedField === 'monto'
-                          ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
-                          : 'bg-gradient-to-r from-[#F3F0F8] to-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB]'
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-medium text-[#9575CD] uppercase tracking-wider">Monto exacto a pagar</p>
-                        <p className="font-bold text-[#4A4A4A] text-base sm:text-lg">
-                          {calculatedBs ? `Bs. ${formattedBs}` : 'Calculando monto...'}
-                        </p>
-                      </div>
-                      {calculatedBs && (
-                        <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
-                          copiedField === 'monto'
-                            ? 'bg-green-500 text-white shadow-sm'
-                            : 'bg-[#B39DDB] text-white shadow-sm'
-                        }`}>
-                          {copiedField === 'monto' ? '✓ Copiado' : 'Copiar monto'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                      💵 Zelle
+                    </button>
+                  )}
                 </div>
 
-                {/* Formulario */}
+                {/* TAB: PAGO MÓVIL */}
+                {activeTab === 'pago_movil' && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="font-semibold text-[#4A4A4A] text-sm flex items-center gap-1.5">
+                        <span>📱</span> Datos para Pago Móvil
+                      </p>
+                      <span className="text-[11px] text-[#8A8A8A]">Toca para copiar</span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {/* Banco */}
+                      <div
+                        onClick={() => copyToClipboard(pagoMovil.bancoNombre, 'banco')}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                          copiedField === 'banco'
+                            ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
+                            : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Banco</p>
+                          <p className="font-medium text-[#4A4A4A] text-sm truncate">{pagoMovil.banco}</p>
+                        </div>
+                        <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
+                          copiedField === 'banco'
+                            ? 'bg-green-500 text-white shadow-sm'
+                            : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
+                        }`}>
+                          {copiedField === 'banco' ? '✓ Copiado' : 'Copiar'}
+                        </span>
+                      </div>
+
+                      {/* Cédula */}
+                      <div
+                        onClick={() => copyToClipboard(pagoMovil.cedulaRaw, 'cedula')}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                          copiedField === 'cedula'
+                            ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
+                            : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Cédula</p>
+                          <p className="font-semibold text-[#4A4A4A] text-sm">{pagoMovil.cedula}</p>
+                        </div>
+                        <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
+                          copiedField === 'cedula'
+                            ? 'bg-green-500 text-white shadow-sm'
+                            : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
+                        }`}>
+                          {copiedField === 'cedula' ? '✓ Copiado' : 'Copiar'}
+                        </span>
+                      </div>
+
+                      {/* Teléfono */}
+                      <div
+                        onClick={() => copyToClipboard(pagoMovil.telefonoRaw, 'telefono')}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                          copiedField === 'telefono'
+                            ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
+                            : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Teléfono</p>
+                          <p className="font-semibold text-[#4A4A4A] text-sm">{pagoMovil.telefono}</p>
+                        </div>
+                        <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
+                          copiedField === 'telefono'
+                            ? 'bg-green-500 text-white shadow-sm'
+                            : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
+                        }`}>
+                          {copiedField === 'telefono' ? '✓ Copiado' : 'Copiar'}
+                        </span>
+                      </div>
+
+                      {/* Monto */}
+                      <div
+                        onClick={() => calculatedBs && copyToClipboard(rawBsNumber, 'monto')}
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                          copiedField === 'monto'
+                            ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
+                            : 'bg-gradient-to-r from-[#F3F0F8] to-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB]'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium text-[#9575CD] uppercase tracking-wider">Monto a pagar</p>
+                          <p className="font-bold text-[#4A4A4A] text-base sm:text-lg">
+                            {calculatedBs ? `Bs. ${formattedBs}` : (apt?.amount_bs ? `Bs. ${apt.amount_bs}` : 'Calculando...')}
+                          </p>
+                        </div>
+                        {(calculatedBs || apt?.amount_bs) && (
+                          <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
+                            copiedField === 'monto'
+                              ? 'bg-green-500 text-white shadow-sm'
+                              : 'bg-[#B39DDB] text-white shadow-sm'
+                          }`}>
+                            {copiedField === 'monto' ? '✓ Copiado' : 'Copiar monto'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB: ZELLE */}
+                {activeTab === 'zelle' && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="font-semibold text-[#4A4A4A] text-sm flex items-center gap-1.5">
+                        <span>💵</span> Datos para Zelle
+                      </p>
+                      <span className="text-[11px] text-[#8A8A8A]">Toca para copiar</span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <div
+                        onClick={() => copyToClipboard(zelle.email, 'zelle_email')}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                          copiedField === 'zelle_email'
+                            ? 'bg-green-50/80 border-green-300 ring-2 ring-green-100'
+                            : 'bg-[#FAFAF8] border-[#E8E4F0] hover:border-[#B39DDB] hover:bg-white'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Correo Zelle</p>
+                          <p className="font-semibold text-[#4A4A4A] text-sm truncate">{zelle.email}</p>
+                        </div>
+                        <span className={`text-xs px-3 py-1.5 rounded-xl font-medium transition-colors flex-shrink-0 ${
+                          copiedField === 'zelle_email'
+                            ? 'bg-green-500 text-white shadow-sm'
+                            : 'bg-white text-[#9575CD] border border-[#E8E4F0]'
+                        }`}>
+                          {copiedField === 'zelle_email' ? '✓ Copiado' : 'Copiar'}
+                        </span>
+                      </div>
+
+                      {zelle.holder && (
+                        <div className="p-3 rounded-2xl border border-[#E8E4F0] bg-[#FAFAF8]">
+                          <p className="text-[11px] font-medium text-[#8A8A8A] uppercase tracking-wider">Titular</p>
+                          <p className="font-medium text-[#4A4A4A] text-sm">{zelle.holder}</p>
+                        </div>
+                      )}
+
+                      <div className="p-3.5 rounded-2xl border border-[#E8E4F0] bg-gradient-to-r from-[#F3F0F8] to-[#FAFAF8]">
+                        <p className="text-[11px] font-medium text-[#9575CD] uppercase tracking-wider">Monto a pagar</p>
+                        <p className="font-bold text-[#4A4A4A] text-base sm:text-lg">
+                          ${apt?.amount_usd || 0} USD
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Formulario de carga de comprobante */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu nombre *</label>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu nombre completo *</label>
                     <input
                       type="text"
                       required
@@ -301,8 +405,9 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       placeholder="Nombre y apellido"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu teléfono</label>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Tu teléfono WhatsApp</label>
                     <input
                       type="tel"
                       value={form.client_phone}
@@ -311,8 +416,24 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       placeholder="04121234567"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">Captura del comprobante *</label>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">
+                      Número de referencia (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.reference_number}
+                      onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#E8E4F0] focus:outline-none focus:border-[#B39DDB] text-sm bg-white"
+                      placeholder="Ej. 123456"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#4A4A4A] mb-1.5">
+                      Captura del comprobante ({activeTab === 'pago_movil' ? 'Pago Móvil' : 'Zelle'}) *
+                    </label>
                     <div
                       className="border-2 border-dashed border-[#E8E4F0] rounded-xl p-6 text-center cursor-pointer hover:border-[#B39DDB] transition-colors bg-[#FAFAF8]"
                       onClick={() => document.getElementById('fileInput')?.click()}
@@ -326,7 +447,7 @@ export default function PaymentPortal({ link, existingProof }: Props) {
                       ) : (
                         <div>
                           <p className="text-3xl mb-2">📤</p>
-                          <p className="text-sm text-[#4A4A4A] font-medium">Toca para subir la captura del Pago Móvil</p>
+                          <p className="text-sm text-[#4A4A4A] font-medium">Toca para subir la captura de pago</p>
                           <p className="text-xs text-[#8A8A8A] mt-1">Formato JPG, PNG o PDF</p>
                         </div>
                       )}

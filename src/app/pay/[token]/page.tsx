@@ -12,7 +12,11 @@ export default async function PayPage({ params }: { params: Promise<{ token: str
     .from('payment_links')
     .select(`
       *,
-      appointments(*,clients(name,phone))
+      appointments(
+        *,
+        clients(name,phone),
+        profiles:psychologist_id(*)
+      )
     `)
     .eq('token', token)
     .single()

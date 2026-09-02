@@ -83,6 +83,15 @@ export default function LoginPage() {
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-[#E8E4F0] text-center">
+            <p className="text-sm text-[#8A8A8A]">
+              ¿Eres psicóloga y aún no tienes cuenta?{' '}
+              <a href="/registro" className="text-[#9575CD] font-medium hover:underline">
+                Prueba 3 días gratis
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

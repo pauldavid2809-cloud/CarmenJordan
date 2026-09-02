@@ -82,9 +82,17 @@ export default function CobrosPage() {
   async function createPaymentLink(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      alert('Debes iniciar sesión')
+      setSaving(false)
+      return
+    }
+
     const { data: apt } = await supabase
       .from('appointments')
       .insert({
+        psychologist_id: user.id,
         client_id: form.client_id,
         scheduled_at: form.scheduled_at,
         session_type: form.session_type,
